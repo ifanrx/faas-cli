@@ -80,6 +80,10 @@ exports.afterRequest = request => async (...args) => {
     throw exports.authError('权限不足。')
   }
 
+  if (response.statusCode === 404) {
+    throw exports.usageError('不存在。')
+  }
+
   if ([200, 201, 202, 204].indexOf(response.statusCode) === -1) {
     let message = response.body
     if (typeof message === 'string') {

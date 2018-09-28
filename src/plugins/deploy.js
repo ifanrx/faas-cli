@@ -8,11 +8,10 @@ export const cli = ensureAuth(
   async (engine, functionName, rootFolder = './') => {
     if (!functionName) {
       throw usageError(
-        '函数名必填',
+        '缺少必填字段 <function_name>',
         '',
         '用法：',
-        '',
-        `${engine.config.get(
+        `    ${engine.config.get(
           'prefix'
         )} deploy <function_name> [function_root_folder] [-m remark]`
       )

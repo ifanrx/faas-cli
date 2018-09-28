@@ -4,11 +4,10 @@ import { usageError, ensureAuth } from '../utils'
 export const cli = ensureAuth(async (engine, functionName, data = {}) => {
   if (!functionName) {
     throw usageError(
-      '函数名必填',
+      '缺少必填字段 <function_name>',
       '',
       '用法：',
-      '',
-      `${engine.config.get('prefix')} invoke <function_name> [data]`
+      `    ${engine.config.get('prefix')} invoke <function_name> [data]`
     )
   }
 

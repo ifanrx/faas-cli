@@ -7,24 +7,17 @@ export default () =>
   engine()
     .then(e => {
       const cmd = e.config.get('cmd')
-      const params = e.config.get('params')
-
       if (cmd && e.cli[cmd] != null) {
-        return e.cli[cmd](...params)
+        return e.cli[cmd](...e.config.get('params'))
       } else {
-        const commands = Object.keys(e.cli).join(', ')
-        const prefix = e.config.get('prefix')
-
-        console.log(
-          [
-            `用法：${prefix} <command>`,
-            '',
-            '支持的命令：',
-            '',
-            `${commands}`,
-            ''
-          ].join('\n')
-        )
+        console.log('用法：')
+        console.log(`    ${e.config.get('prefix')} <command>`)
+        console.log('')
+        console.log('支持的 command 有：')
+        console.log(`    ${Object.keys(e.cli).join(', ')}`)
+        console.log('')
+        console.log(`- ${e.config.get('prefix')}: v${e.config.get('version')}`)
+        console.log(`- node: ${process.version}`)
       }
     })
     .catch(errorHandler)

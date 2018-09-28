@@ -3,10 +3,10 @@ import { usageError } from '../utils'
 export async function cli (engine, clientId, clientSecret) {
   if (!clientId || !clientSecret) {
     throw usageError(
-      '请输入 client_id 和 client_secret',
+      '缺少必填字段 <client_id> 和 <client_secret>',
       '',
       '用法：',
-      `${engine.config.get('prefix')} login <client_id> <client_secret>`
+      `    ${engine.config.get('prefix')} login <client_id> <client_secret>`
     )
   }
 
