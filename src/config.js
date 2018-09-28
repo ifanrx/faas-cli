@@ -1,52 +1,60 @@
 import cc from 'config-chain'
-import { usageError } from './error'
+import nopt from 'nopt'
+import osenv from 'osenv'
+import fs from 'fs'
+import path from 'path'
+
 import pkg from '../package.json'
 
-let cfg
+/**
+ * 优先级
+ * 1. 命令行参数
+ * 2. 环境变量
+ * 3. ini rc 文件
+ *
+ */
+export const defaults = {
+  argv: process.argv,
+  env: process.env,
+  prefix: pkg.name,
+  oshome: osenv.home(),
+  version: pkg.version,
+  base_url: 'https://cloud.minapp.com/',
+  ua: `ifanr_faas_cli ${pkg.name}/${pkg.version}`
+}
 
-export default function load (nopts) {
+export default function loadConfig (opts = {}) {
   return new Promise((resolve, reject) => {
-    if (cfg) resolve(cfg)
-    cfg = cc(nopts)
-      .addFile(nopts[`${pkg.name}rc`], 'ini', 'config')
+    opts = {
+      ...defaults,
+      ...opts
+    }
+    const parsed = nopt(
+      {
+        json: [Boolean],
+        message: [String]
+      },
+      { j: '--json', m: '--message' },
+      opts.argv,
+      2
+    )
+    const cmd = parsed.argv.remain.shift() // 命令
+    if (cmd) {
+      parsed.cmd = cmd
+    }
+    parsed.params = parsed.argv.remain // 命令行参数
+
+    const iniFile = path.join(opts.oshome, `.${opts.prefix}rc`)
+    if (!fs.existsSync(iniFile)) {
+      fs.writeFileSync(iniFile, '')
+    }
+
+    const config = cc(parsed, cc.env(`${opts.prefix}_`, opts.env))
+      .addFile(iniFile, 'ini', 'config')
+      .add(defaults)
       .on('load', () => {
-        resolve(cfg)
+        resolve(config)
       })
       .on('error', reject)
-  })
-}
-
-export function set (key, value) {
-  return new Promise((resolve, reject) => {
-    if (!key && !value) {
-      return reject(usageError('key, value 必填'))
-    }
-
-    cfg.set(key, value, 'config')
-    cfg.on('save', () => {
-      resolve(cfg)
-    })
-    cfg.on('error', reject)
-    cfg.save('config')
-  })
-}
-
-export function get (key) {
-  return new Promise(resolve => {
-    const data = cfg.sources.config.data
-
-    if (cfg.get('json') && !key) {
-      return resolve(data)
-    }
-
-    if (cfg.get('json') && key) {
-      return resolve({ [key]: data[key] })
-    }
-
-    if (key) {
-      return resolve(cfg.sources.config.data[key])
-    }
-
-    return data
   })
 }

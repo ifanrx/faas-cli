@@ -1,4 +1,4 @@
-import { usageError } from '../error'
+import { usageError } from '../utils'
 import mkdirp from 'mkdirp'
 import path from 'path'
 import fs from 'fs'
@@ -16,7 +16,7 @@ export async function cli (engine, functionName, target = './') {
           '',
           '用法：',
           '',
-          `${engine.name} new <function_name> [target]`
+          `${engine.config.get('prefix')} new <function_name> [target]`
         )
       )
     }
@@ -31,7 +31,7 @@ export async function cli (engine, functionName, target = './') {
         if (err) {
           return reject(err)
         }
-
+        resolve()
         console.log(`已经创建了云函数 ${functionName}\n`)
       })
     })

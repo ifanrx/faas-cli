@@ -1,7 +1,12 @@
-import * as config from '../config'
-
-export function cli () {
-  return config.set('access_token', '').then(() => {
-    console.log('已注销')
+export function cli (engine) {
+  return new Promise((resolve, reject) => {
+    engine.config
+      .set('access_token', '', 'config')
+      .on('save', () => {
+        console.log('注销成功')
+        resolve()
+      })
+      .on('error', reject)
+      .save('config', 'ini')
   })
 }

@@ -1,88 +1,69 @@
-import request from 'request'
 import prettyjson from 'prettyjson'
 import path from 'path'
 import fs from 'fs'
 
-import { usageError } from '../error'
+import { usageError, ensureAuth } from '../utils'
 
-export async function cli (engine, functionName, target = '.') {
-  if (!functionName) {
-    throw usageError(
-      '函数名必填',
-      '',
-      '用法：',
-      '',
-      `${engine.name} deploy <function_name> [target]`
-    )
-  }
-
-  const json = await engine.config.get('json')
-  const accessToken = await engine.config.get('access_token')
-
-  if (!accessToken) {
-    throw usageError('请先登录')
-  }
-
-  let targetFile = path.join(process.cwd(), target, functionName) + '.js'
-  if (!fs.existsSync(targetFile)) {
-    targetFile = path.join(process.cwd(), target, functionName, 'index.js')
-    if (!fs.existsSync(targetFile)) {
+export const cli = ensureAuth(
+  async (engine, functionName, rootFolder = './') => {
+    if (!functionName) {
       throw usageError(
-        '不存在此云函数文件',
+        '函数名必填',
         '',
-        `云函数根目录：${target}`,
-        `函数名：${functionName}`
+        '用法：',
+        '',
+        `${engine.config.get(
+          'prefix'
+        )} deploy <function_name> [functions_root_folder] [-m remark]`
       )
     }
-  }
 
-  let functionCode = fs.readFileSync(targetFile, 'utf8')
+    const candidate = [
+      path.join(process.cwd(), rootFolder, functionName) + '.js',
+      path.join(process.cwd(), rootFolder, functionName, 'index.js')
+    ]
 
-  const result = await deploy({
-    accessToken,
-    functionName,
-    functionCode
-  })
+    let targetFile
 
-  if (json) {
-    console.log(JSON.stringify(result))
-  } else {
-    if (result && result.audit_status === 'approved') {
-      console.log('部署成功')
+    candidate.forEach(file => {
+      if (fs.existsSync(file)) {
+        targetFile = file
+      }
+    })
+
+    if (!targetFile) {
+      throw usageError(
+        '云函数文件不存在',
+        '',
+        candidate.join('\n'),
+        '',
+        `- 函数名：${functionName}`,
+        `- 函数根目录: ${rootFolder}`
+      )
+    }
+
+    const functionCode = fs.readFileSync(targetFile, 'utf8')
+
+    if (!functionCode) {
+      throw usageError('云函数代码不能为空')
+    }
+
+    const remark = engine.config.get('message')
+
+    const response = await engine.request({
+      uri: '/oserve/v1.3/cloud-function/',
+      method: 'POST',
+      json: {
+        name: functionName,
+        function_code: functionCode,
+        remark
+      }
+    })
+
+    if (engine.config.get('json')) {
+      console.log(JSON.stringify(response.body))
     } else {
-      console.log(prettyjson.render(result))
+      console.log(prettyjson.render(response.body))
     }
   }
-
-  return result
-}
-
-export function deploy ({ accessToken, functionName, functionCode, remark = '' }) {
-  return new Promise((resolve, reject) => {
-    request(
-      {
-        uri: 'https://cloud.minapp.com/oserve/v1.3/cloud-function/',
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        },
-        json: {
-          name: functionName,
-          function_code: functionCode,
-          remark
-        }
-      },
-      (err, res, body) => {
-        if (err) {
-          return reject(err)
-        }
-
-        if (res.statusCode === 401 || res.statusCode === 403) {
-          return reject(usageError('请先登录'))
-        }
-
-        resolve(body)
-      }
-    )
-  })
-}
+)

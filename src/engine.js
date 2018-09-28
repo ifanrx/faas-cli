@@ -1,31 +1,35 @@
-import pkg from '../package.json'
+import request from 'request'
+import util from 'util'
+
 import loadConfig from './config'
 import loadPlugins from './plugins'
+import { afterRequest } from './utils'
 
-let engine
+export default async function engine (opts) {
+  const config = await loadConfig(opts)
+  const plugins = await loadPlugins()
 
-export default (opts = {}) =>
-  new Promise((resolve, reject) => {
-    if (engine) {
-      return resolve(engine)
+  const defaultRequestOpts = {}
+  const accessToken = config.get('access_token')
+  if (accessToken) {
+    defaultRequestOpts['headers'] = {
+      'User-Agent': config.get('ua'),
+      Authorization: `Bearer ${accessToken}`
     }
-    Promise.all([loadConfig(opts), loadPlugins()])
-      .then(([config, plugins]) => {
-        engine = {
-          version: pkg.version,
-          name: pkg.name,
-          config,
-          cli: {}
-        }
+  }
+  const baseUrl = config.get('base_url')
+  if (baseUrl) {
+    defaultRequestOpts['baseUrl'] = baseUrl
+  }
 
-        Object.keys(plugins).forEach(k => {
-          if (plugins[k].cli) {
-            engine.cli[k] = (...args) => {
-              return plugins[k].cli(engine, ...args)
-            }
-          }
-        })
-        resolve(engine)
-      })
-      .catch(reject)
-  })
+  const engine = {
+    request: afterRequest(util.promisify(request.defaults(defaultRequestOpts))),
+    config,
+    cli: Object.keys(plugins).reduce((obj, k) => {
+      obj[k] = (...args) => plugins[k].cli(engine, ...args)
+      return obj
+    }, {})
+  }
+
+  return engine
+}

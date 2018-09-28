@@ -17,15 +17,22 @@
   },
   "bin": "bin/faas-cli.js",
   "scripts": {
-    "build": "rimraf lib && babel src -d lib --ignore src/**/*.spec.js,src/**/*.test.js",
+    "build": "rimraf lib && babel src -d lib --ignore '**/*.spec.js,**/*.test.js'",
     "test": "jest src/",
     "format": "prettier --write 'src/**/*.js' && npm run lint -- --fix",
     "lint": "standard 'src/**/*.js'",
     "precommit": "npm run format && npm run lint --fix && npm run test",
     "prepublishOnly": "npm run build"
   },
+  "standard": {
+    "env": [
+      "jest"
+    ]
+  },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
+    "babel-preset-stage-2": "^6.24.1",
+    "columnify": "^1.5.4",
     "config-chain": "^1.1.12",
     "mkdirp": "^0.5.1",
     "nopt": "^4.0.1",

@@ -1,70 +1,38 @@
-import request from 'request'
 import prettyjson from 'prettyjson'
-import { usageError } from '../error'
+import { usageError, ensureAuth } from '../utils'
 
-export async function cli (engine, functionName, data) {
+export const cli = ensureAuth(async (engine, functionName, data = {}) => {
   if (!functionName) {
     throw usageError(
       '函数名必填',
       '',
       '用法：',
       '',
-      `${engine.name} invoke <function_name> [data]`
+      `${engine.config.get('prefix')} invoke <function_name> [data]`
     )
   }
 
-  const json = await engine.config.get('json')
-  const accessToken = await engine.config.get('access_token')
-
-  if (!accessToken) {
-    throw usageError('请先登录')
+  if (typeof data === 'string') {
+    try {
+      data = JSON.parse(data)
+    } catch (err) {
+      throw usageError('data 不是合法的 JSON')
+    }
   }
 
-  const result = await invoke({
-    accessToken,
-    functionName,
-    data
+  const response = await engine.request({
+    uri: `/oserve/v1.3/cloud-function/${functionName}/debug/`,
+    method: 'POST',
+    json: { function_name: functionName, data, sync: true }
   })
 
-  if (json) {
-    console.log(JSON.stringify(result))
+  const body = response.body
+
+  if (engine.config.get('json')) {
+    console.log(JSON.stringify(body))
   } else {
-    console.log(prettyjson.render(result))
+    console.log(prettyjson.render(body))
   }
 
-  return result
-}
-
-export function invoke ({ accessToken, functionName, data = {}, sync = true }) {
-  return new Promise((resolve, reject) => {
-    request(
-      {
-        uri: `https://cloud.minapp.com/oserve/v1.3/cloud-function/${functionName}/debug/`,
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        },
-        json: {
-          function_name: functionName,
-          data,
-          sync
-        }
-      },
-      (err, res, body) => {
-        if (err) {
-          return reject(err)
-        }
-
-        if (res.statusCode === 404) {
-          return reject(usageError(body || '没有此函数'))
-        }
-
-        if (res.statusCode === 401 || res.statusCode === 403) {
-          return reject(usageError('请先登录'))
-        }
-
-        resolve(body)
-      }
-    )
-  })
-}
+  return response
+})

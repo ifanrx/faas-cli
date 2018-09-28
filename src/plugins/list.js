@@ -1,59 +1,32 @@
-import request from 'request'
-import { usageError } from '../error'
+import columnify from 'columnify'
+import { ensureAuth } from '../utils'
 
-export async function cli (engine, limit, offset) {
-  const json = await engine.config.get('json')
-  const accessToken = await engine.config.get('access_token')
-
-  if (!accessToken) {
-    throw usageError('请先登录')
-  }
-
-  const result = await list({
-    accessToken,
-    limit,
-    offset
+export const cli = ensureAuth(async (engine, limit = 20, offset = 0) => {
+  const response = await engine.request({
+    uri: '/oserve/v1.3/cloud-function/',
+    json: true,
+    method: 'GET',
+    qs: {
+      offset,
+      limit
+    }
   })
 
-  if (json) {
-    console.log(JSON.stringify(result))
+  if (engine.config.get('json')) {
+    console.log(JSON.stringify(response.body))
   } else {
-    console.log('可用的云函数：')
-    result.objects.forEach(item => {
-      console.log(item.name)
-    })
+    const data = response.body
+
+    if (data.objects.length === 0) {
+      console.log('没有云函数')
+    } else {
+      const view = data.objects.map(item => ({
+        函数名: item.name,
+        状态: item.audit_status
+      }))
+      console.log(columnify(view))
+    }
   }
 
-  return result
-}
-
-export function list ({ accessToken, limit = 20, offset = 0 }) {
-  return new Promise((resolve, reject) => {
-    request(
-      {
-        uri: 'https://cloud.minapp.com/oserve/v1.3/cloud-function/',
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${accessToken}`,
-          json: true
-        },
-        qs: {
-          offset,
-          limit
-        }
-      },
-      (err, res, body) => {
-        if (err) {
-          return reject(err)
-        }
-
-        if (res.statusCode === 401 || res.statusCode === 403) {
-          return reject(usageError('请先登录'))
-        }
-
-        resolve(JSON.parse(body))
-      }
-    )
-  })
-}
+  return response
+})
