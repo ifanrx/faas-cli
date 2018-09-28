@@ -2,38 +2,38 @@ import { usageError } from '../utils'
 import mkdirp from 'mkdirp'
 import path from 'path'
 import fs from 'fs'
+import util from 'util'
+
+const mkdir = util.promisify(mkdirp)
+const echo = util.promisify(fs.writeFile)
 
 const FUNCTION_TEMPLATE = `exports.main = function functionName(event, callback) {
   callback(null, "hello world")
 }`
 
-export async function cli (engine, functionName, target = './') {
-  return new Promise((resolve, reject) => {
-    if (!functionName) {
-      return reject(
-        usageError(
-          '函数名必填',
-          '',
-          '用法：',
-          '',
-          `${engine.config.get('prefix')} new <function_name> [target]`
-        )
-      )
-    }
+export async function cli (engine, functionName, rootFolder = './') {
+  if (!functionName) {
+    throw usageError(
+      '函数名必填',
+      '',
+      '用法：',
+      '',
+      `${engine.config.get(
+        'prefix'
+      )} new <function_name> [function_root_folder]`
+    )
+  }
 
-    const joined = path.join(process.cwd(), target, functionName)
-    mkdirp(joined, err => {
-      if (err) {
-        return reject(err)
-      }
+  const target = path.join(process.cwd(), rootFolder, functionName)
+  const targetfile = path.join(target, 'index.js')
+  await mkdir(target)
+  await echo(targetfile, FUNCTION_TEMPLATE)
 
-      fs.writeFile(path.join(joined, 'index.js'), FUNCTION_TEMPLATE, err => {
-        if (err) {
-          return reject(err)
-        }
-        resolve()
-        console.log(`已经创建了云函数 ${functionName}\n`)
-      })
-    })
-  })
+  console.log('创建成功')
+  console.log('')
+  console.log(target)
+  console.log(targetfile)
+  console.log('')
+  console.log(`- 函数名：${functionName}`)
+  console.log(`- 函数根目录: ${rootFolder}`)
 }

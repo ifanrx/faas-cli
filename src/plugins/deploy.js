@@ -14,7 +14,7 @@ export const cli = ensureAuth(
         '',
         `${engine.config.get(
           'prefix'
-        )} deploy <function_name> [functions_root_folder] [-m remark]`
+        )} deploy <function_name> [function_root_folder] [-m remark]`
       )
     }
 
