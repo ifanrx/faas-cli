@@ -1,0 +1,121 @@
+import nock from 'nock'
+import rimraf from 'rimraf'
+import util from 'util'
+import path from 'path'
+import prettyjson from 'prettyjson'
+
+import engine from '../engine'
+
+const rm = util.promisify(rimraf)
+const host = 'https://cloud.minapp.com'
+const config = {
+  prefix: 'invoke_test',
+  oshome: __dirname,
+  env: { invoke_test_access_token: '123' }
+}
+const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
+
+const response = {
+  billing_time: 100,
+  code: 0,
+  data: 'hello world',
+  error: {},
+  execution_time: 13.46,
+  job_id: '490f08ff9b2e4a6b874581de53950e54',
+  log:
+    '2018-09-21T03:46:26.026Z LOG event.data:  {}\n2018-09-21T03:46:26.029Z LOG return:  hello world\n',
+  mem_usage: 78340096
+}
+
+describe('cli invoke command', () => {
+  it('invoke command with nothing', async () => {
+    const e = await engine(config)
+    expect.assertions(1)
+    await expect(e.cli.invoke()).rejects.toThrowError()
+    await rm(rcPath)
+  })
+
+  it('invoke command with function name', async () => {
+    const functionName = 'invoke_test'
+    const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
+    const e = await engine(config)
+    expect.assertions(1)
+    nock(host)
+      .post(link, { function_name: functionName, data: {}, sync: true })
+      .reply(200, response)
+
+    const res = await e.cli.invoke(functionName)
+    await rm(rcPath)
+    expect(res.body).toMatchObject(response)
+  })
+
+  it('invoke command with function name and invalid data', async () => {
+    const functionName = 'invoke_invalid_data_test'
+    const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
+    const e = await engine(config)
+    const postObj = {
+      function_name: functionName,
+      data: 'invalid json',
+      sync: true
+    }
+    expect.assertions(1)
+    nock(host)
+      .post(link, postObj)
+      .reply(200, response)
+
+    await expect(e.cli.invoke(functionName)).rejects.toThrowError()
+    await rm(rcPath)
+  })
+
+  it('invoke command with function name and valid data', async () => {
+    expect.assertions(1)
+    const e = await engine(config)
+    // 监听 console.log
+    let logStore = ''
+    console.log = jest.fn(output => (logStore = output))
+    const functionName = 'invoke_valid_data_test'
+    const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
+    const postObj = {
+      function_name: functionName,
+      data: { data1: 'hello', data2: 123 },
+      sync: true
+    }
+    nock(host)
+      .post(link, postObj)
+      .reply(200, response)
+    const res = await e.cli.invoke(functionName, JSON.stringify(postObj.data))
+    expect(logStore).toBe(prettyjson.render(res.body))
+
+    await rm(rcPath)
+  })
+
+  it('invoke command with json flag', async () => {
+    expect.assertions(1)
+    const e = await engine({
+      ...config,
+      env: {
+        [`${config.prefix}_json`]: true,
+        [`${config.prefix}_access_token`]: '123'
+      }
+    })
+    // 监听 console.log
+    let logStore = ''
+    console.log = jest.fn(output => (logStore = output))
+
+    const functionName = 'invoke_with_json'
+    const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
+    const postObj = {
+      function_name: functionName,
+      data: { data1: 'hello', data2: 123 },
+      sync: true
+    }
+
+    nock(host)
+      .post(link, postObj)
+      .reply(200, response)
+    const res = await e.cli.invoke(functionName, JSON.stringify(postObj.data))
+    expect(logStore).toBe(JSON.stringify(res.body))
+
+    await rm(rcPath)
+  })
+})
