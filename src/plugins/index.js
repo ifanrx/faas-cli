@@ -1,14 +1,12 @@
 import fs from 'fs'
 import path from 'path'
+import util from 'util'
 
 export default () =>
-  new Promise((resolve, reject) =>
-    fs.readdir(__dirname, (err, files) => {
-      if (err) {
-        return reject(err)
-      }
-
-      const plugins = files.reduce((m, filename) => {
+  util
+    .promisify(fs.readdir)(__dirname)
+    .then(files =>
+      files.reduce((m, filename) => {
         const joined = path.join(__dirname, filename)
         if (
           fs.statSync(joined).isDirectory() &&
@@ -27,6 +25,4 @@ export default () =>
         }
         return m
       }, {})
-      resolve(plugins)
-    })
-  )
+    )

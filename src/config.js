@@ -20,7 +20,7 @@ export const defaults = {
   oshome: osenv.home(),
   version: pkg.version,
   base_url: 'https://cloud.minapp.com/',
-  ua: `ifanr_faas_cli ${pkg.name}/${pkg.version}`
+  ua: `ifanr-${pkg.name}/${pkg.version}`
 }
 
 export default function loadConfig (opts = {}) {
