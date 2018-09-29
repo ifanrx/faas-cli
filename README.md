@@ -1,4 +1,4 @@
-# ifxc
+# ifxc [![Build Status](https://travis-ci.org/ifanrx/faas-cli.svg?branch=master)](https://travis-ci.org/ifanrx/faas-cli)
 
 这是一个用于[知晓云函数](https://doc.minapp.com/cloud-function/)的命令行工具。
 
