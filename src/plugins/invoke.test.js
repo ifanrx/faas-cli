@@ -2,9 +2,9 @@ import nock from 'nock'
 import rimraf from 'rimraf'
 import util from 'util'
 import path from 'path'
-import prettyjson from 'prettyjson'
 
 import engine from '../engine'
+import { formatByte } from '../utils'
 
 const rm = util.promisify(rimraf)
 const host = 'https://cloud.minapp.com'
@@ -14,6 +14,29 @@ const config = {
   env: { invoke_test_access_token: '123' }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
+const formatResult = data => {
+  const result = `测试结果：${data.code ? '失败' : '成功'}
+  返回结果：
+  ${
+  data.code
+    ? `
+    错误类型：${data.error.type}
+    错误信息：${data.error.message}
+    错误堆栈：${data.error.stack}`
+    : `${data.data}`
+}
+
+摘要：
+  任务 ID：${data.job_id}
+  运行时间：${data.execution_time}
+  计费时间：${data.billing_time}
+  占用内存：${formatByte(data.mem_usage)}
+
+日志：
+  ${data.log.replace('\n', '\n  ')}
+`
+  return result
+}
 
 const response = {
   billing_time: 100,
@@ -84,7 +107,7 @@ describe('cli invoke command', () => {
       .post(link, postObj)
       .reply(200, response)
     const res = await e.cli.invoke(functionName, JSON.stringify(postObj.data))
-    expect(logStore).toBe(prettyjson.render(res.body))
+    expect(logStore).toBe(formatResult(res.body))
 
     await rm(rcPath)
   })

@@ -1,5 +1,28 @@
-import prettyjson from 'prettyjson'
-import { usageError, ensureAuth } from '../utils'
+import { usageError, ensureAuth, formatByte } from '../utils'
+
+const formatResult = data => {
+  const result = `测试结果：${data.code ? '失败' : '成功'}
+  返回结果：
+  ${
+  data.code
+    ? `
+    错误类型：${data.error.type}
+    错误信息：${data.error.message}
+    错误堆栈：${data.error.stack}`
+    : `${data.data}`
+}
+
+摘要：
+  任务 ID：${data.job_id}
+  运行时间：${data.execution_time}
+  计费时间：${data.billing_time}
+  占用内存：${formatByte(data.mem_usage)}
+
+日志：
+  ${data.log.replace('\n', '\n  ')}
+`
+  return result
+}
 
 export const cli = ensureAuth(async (engine, functionName, data = {}) => {
   if (!functionName) {
@@ -30,7 +53,7 @@ export const cli = ensureAuth(async (engine, functionName, data = {}) => {
   if (engine.config.get('json')) {
     console.log(JSON.stringify(body))
   } else {
-    console.log(prettyjson.render(body))
+    console.log(formatResult(body))
   }
 
   return response

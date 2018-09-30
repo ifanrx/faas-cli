@@ -103,3 +103,14 @@ exports.afterRequest = request => async (...args) => {
 
   return response
 }
+
+exports.formatByte = byte => {
+  const divisor = 1024
+  const unit = ['Byte', 'KB', 'MB', 'GB', 'TB']
+  let i = 0
+  while (Math.floor(byte / divisor) > 1) {
+    i++
+    byte = byte / divisor
+  }
+  return byte.toFixed(2) + unit[i]
+}
