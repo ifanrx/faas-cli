@@ -34,7 +34,8 @@ describe('cli delete command', () => {
     await expect(e.cli.delete(functionName)).rejects.toThrowError()
 
     let spyMessage = ''
-    const spy = jest.spyOn(global.console, 'log')
+    const spy = jest
+      .spyOn(global.console, 'log')
       .mockImplementation(msg => (spyMessage = msg))
     nock(host)
       .delete(link)

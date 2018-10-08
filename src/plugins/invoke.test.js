@@ -68,7 +68,8 @@ describe('cli invoke command', () => {
       .reply(200, response)
 
     let spyMessage = ''
-    const spy = jest.spyOn(global.console, 'log')
+    const spy = jest
+      .spyOn(global.console, 'log')
       .mockImplementation(msg => (spyMessage = msg))
 
     const res = await e.cli.invoke(functionName)

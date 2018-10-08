@@ -23,7 +23,7 @@ export async function cli (engine, functionName, rootFolder = './') {
     )
   }
 
-  const target = path.join(process.cwd(), rootFolder, functionName)
+  const target = path.resolve(rootFolder, functionName)
   const targetfile = path.join(target, 'index.js')
   await mkdir(target)
   await echo(targetfile, FUNCTION_TEMPLATE)

@@ -49,7 +49,8 @@ describe('cli login command', () => {
     await expect(e.cli.login(clientID, clientSecret)).rejects.toThrow()
 
     let spyMessage = ''
-    const spy = jest.spyOn(global.console, 'log')
+    const spy = jest
+      .spyOn(global.console, 'log')
       .mockImplementation(msg => (spyMessage = msg))
     nock(host)
       .post(authorizeLink)

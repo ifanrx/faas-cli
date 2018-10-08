@@ -18,8 +18,8 @@ export const cli = ensureAuth(
     }
 
     const candidate = [
-      path.join(process.cwd(), rootFolder, functionName) + '.js',
-      path.join(process.cwd(), rootFolder, functionName, 'index.js')
+      path.resolve(rootFolder, functionName) + '.js',
+      path.resolve(rootFolder, functionName, 'index.js')
     ]
 
     let targetFile
