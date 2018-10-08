@@ -27,11 +27,12 @@ describe('cli login command', () => {
   })
 
   it('login with client id and client secret', async () => {
+    expect.assertions(5)
+
     const authorizeLink = '/api/oauth2/hydrogen/openapi/authorize/'
     const accessTokenLink = '/api/oauth2/access_token/'
     const e = await engine(config)
 
-    expect.assertions(3)
     nock(host)
       .post(authorizeLink)
       .replyWithError(401)
@@ -47,6 +48,9 @@ describe('cli login command', () => {
       .replyWithError(400)
     await expect(e.cli.login(clientID, clientSecret)).rejects.toThrow()
 
+    let spyMessage = ''
+    const spy = jest.spyOn(global.console, 'log')
+      .mockImplementation(msg => (spyMessage = msg))
     nock(host)
       .post(authorizeLink)
       .reply(200, { code })
@@ -54,10 +58,14 @@ describe('cli login command', () => {
       .post(accessTokenLink)
       .reply(200, { access_token: accessToken })
     await e.cli.login(clientID, clientSecret)
+
     expect(fs.readFileSync(rcPath).toString()).toEqual(
       expect.stringContaining(accessToken)
     )
+    expect(spy).toHaveBeenCalled()
+    expect(spyMessage).toBe('登录成功')
 
     await rm(rcPath)
+    spy.mockRestore()
   })
 })

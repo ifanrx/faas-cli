@@ -1,4 +1,5 @@
 import request from 'request'
+import 'util.promisify/shim'
 import util from 'util'
 
 import loadConfig from './config'

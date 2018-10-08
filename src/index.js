@@ -1,5 +1,4 @@
-import 'babel-polyfill'
-
+import './polyfill'
 import engine from './engine'
 import { errorHandler } from './utils'
 

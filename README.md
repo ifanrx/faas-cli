@@ -54,11 +54,11 @@ $ ifxc delete <funciton_name>
 谨慎操作，此操作会将本地云函数代码部署到服务，如果服务器已经同名云函数，将覆盖。
 
 ```
-$ ifxc deploy <function_name> [function_root_folder] [-m remark]
+$ ifxc deploy <function_name> [cloud_function_root] [-m remark]
 ```
 
 * function_name 函数名，必填，云函数名称
-* function_root_folder 存放云函数代码的本地目录，选填，默认是当前目录，相对路径
+* cloud_function_root 存放云函数代码的本地目录，选填，默认是当前目录，相对路径
 * remark 备注，选填，默认空字符串
 
 ### 调用知晓云函数
@@ -89,8 +89,8 @@ $ ifxc logout
 ### 本地创建一个云函数文件
 
 ```
-$ ifxc new <function_name> [function_root_folder]
+$ ifxc new <function_name> [cloud_function_root]
 ```
 
 * function_name 函数名，必填，云函数名称
-* function_root_folder 存放云函数代码的本地目录，选填，默认是当前目录，相对路径
+* cloud_function_root 存放云函数代码的本地目录，选填，默认是当前目录，相对路径

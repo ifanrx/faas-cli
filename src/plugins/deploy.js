@@ -13,7 +13,7 @@ export const cli = ensureAuth(
         '用法：',
         `    ${engine.config.get(
           'prefix'
-        )} deploy <function_name> [function_root_folder] [-m remark]`
+        )} deploy <function_name> [cloud_function_root] [-m remark]`
       )
     }
 

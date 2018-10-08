@@ -19,7 +19,7 @@ export async function cli (engine, functionName, rootFolder = './') {
       '用法：',
       `    ${engine.config.get(
         'prefix'
-      )} new <function_name> [function_root_folder]`
+      )} new <function_name> [cloud_function_root]`
     )
   }
 

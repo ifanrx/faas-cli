@@ -62,14 +62,23 @@ describe('cli invoke command', () => {
     const functionName = 'invoke_test'
     const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
     const e = await engine(config)
-    expect.assertions(1)
+    expect.assertions(3)
     nock(host)
       .post(link, { function_name: functionName, data: {}, sync: true })
       .reply(200, response)
 
+    let spyMessage = ''
+    const spy = jest.spyOn(global.console, 'log')
+      .mockImplementation(msg => (spyMessage = msg))
+
     const res = await e.cli.invoke(functionName)
-    await rm(rcPath)
+
     expect(res.body).toMatchObject(response)
+    expect(spy).toHaveBeenCalled()
+    expect(spyMessage).toBe(formatResult(res.body))
+
+    spy.mockRestore()
+    await rm(rcPath)
   })
 
   it('invoke command with function name and invalid data', async () => {
