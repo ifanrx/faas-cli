@@ -10,7 +10,7 @@
    通过 npm 安装：
 
    ```
-   $ npm install -g  ifxc
+   $ npm install -g ifxc
    ```
 
    通过 yarn 安装：

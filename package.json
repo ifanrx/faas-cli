@@ -13,7 +13,7 @@
     "url": "https://github.com/ifanrx/faas-cli/issues"
   },
   "engines": {
-    "node": ">=8.10.0"
+    "node": ">=6.14.0"
   },
   "bin": "bin/faas-cli.js",
   "scripts": {
