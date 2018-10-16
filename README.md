@@ -1,4 +1,4 @@
-# ifxc [![Build Status](https://travis-ci.org/ifanrx/faas-cli.svg?branch=master)](https://travis-ci.org/ifanrx/faas-cli)
+# mincli [![Build Status](https://travis-ci.org/ifanrx/faas-cli.svg?branch=master)](https://travis-ci.org/ifanrx/faas-cli)
 
 这是一个用于知晓云[云函数](https://doc.minapp.com/cloud-function/)的命令行工具。
 
@@ -10,26 +10,26 @@
    通过 npm 安装：
 
    ```
-   $ npm install -g ifxc
+   $ npm install -g mincli
    ```
 
    通过 yarn 安装：
 
    ```
-   $ yarn global add ifxc
+   $ yarn global add mincli
    ```
 
 3. 调用
 
    ```
-   $ ifxc
+   $ mincli
    用法：
-    ifxc <command>
+    mincli <command>
 
    支持的 command 有：
       delete, deploy, invoke, list, login, logout, new
 
-   - ifxc: v1.1.0
+   - mincli: v1.1.0
    - node: v8.10.0
    ```
 
@@ -41,10 +41,10 @@ flag       | 说明
 
 ### 删除云函数
 
-必须先登录，请参考 `ifxc login`。谨慎操作，此操作会将服务器上的云函数删除。
+必须先登录，请参考 `mincli login`。谨慎操作，此操作会将服务器上的云函数删除。
 
 ```
-$ ifxc delete <funciton_name>
+$ mincli delete <funciton_name>
 ```
 
 参数          | 必填  | 默认值 |  说明
@@ -53,10 +53,10 @@ function_name | 是    | 无     | 已经存在的云函数
 
 ### 部署云函数
 
-必须先登录，请参考 `ifxc login`。
+必须先登录，请参考 `mincli login`。
 
 ```
-$ ifxc deploy <function_name> [cloud_function_root] [-m remark]
+$ mincli deploy <function_name> [cloud_function_root] [-m remark]
 ```
 
 参数                | 必填  | 默认值        |  说明
@@ -71,10 +71,10 @@ flag          | 说明
 
 ### 调用云函数
 
-必须先登录，请参考 `ifxc login`。
+必须先登录，请参考 `mincli login`。
 
 ```
-$ ifxc invoke <funciton_name> [data]
+$ mincli invoke <funciton_name> [data]
 ```
 
 参数          | 必填  | 默认值      |  说明
@@ -84,18 +84,18 @@ data          | 否    | 空对象 `{}` | JSON 数据
 
 ### 列出云函数
 
-必须先登录，请参考 `ifxc login`。
+必须先登录，请参考 `mincli login`。
 
 ```
-$ ifxc list
+$ mincli list
 ```
 
 ### 登录
 
-使用知晓云[客户端凭证](https://cloud.minapp.com/dashboard/#/app/settings/app/)登录，令牌将保存在本地文件 `.ifxcrc` 中；若过期，请重新登录。
+使用知晓云[客户端凭证](https://cloud.minapp.com/dashboard/#/app/settings/app/)登录，令牌将保存在本地文件 `.minclirc` 中；若过期，请重新登录。
 
 ```
-$ ifxc login <client_id> <client_secret>
+$ mincli login <client_id> <client_secret>
 ```
 
 参数          | 必填  | 默认值 |  说明
@@ -106,7 +106,7 @@ client_secret | 是    | 无     | 知晓云的客户端密钥
 ### 注销
 
 ```
-$ ifxc logout
+$ mincli logout
 ```
 
 ### 本地创建一个云函数文件
@@ -114,7 +114,7 @@ $ ifxc logout
 此命令将创建一个简单的云函数，文件夹即函数名，入口文件即 `<function_name>/index.js`。
 
 ```
-$ ifxc new <function_name> [cloud_function_root]
+$ mincli new <function_name> [cloud_function_root]
 ```
 
 参数                | 必填  | 默认值        |  说明

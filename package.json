@@ -1,7 +1,7 @@
 {
-  "version": "1.1.1",
-  "name": "ifxc",
-  "description": "ifxc stands for ifanrx faas cli",
+  "version": "1.0.0",
+  "name": "mincli",
+  "description": "mincli is a faas cli",
   "keywords": [
     "faas",
     "cli"
