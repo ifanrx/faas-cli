@@ -1,4 +1,4 @@
-# mincli [![Build Status](https://travis-ci.org/ifanrx/faas-cli.svg?branch=master)](https://travis-ci.org/ifanrx/faas-cli)
+# mincloud [![Build Status](https://travis-ci.org/ifanrx/faas-cli.svg?branch=master)](https://travis-ci.org/ifanrx/faas-cli)
 
 这是一个用于知晓云[云函数](https://doc.minapp.com/cloud-function/)的命令行工具。
 
@@ -10,26 +10,26 @@
    通过 npm 安装：
 
    ```
-   $ npm install -g mincli
+   $ npm install -g mincloud
    ```
 
    通过 yarn 安装：
 
    ```
-   $ yarn global add mincli
+   $ yarn global add mincloud
    ```
 
 3. 调用
 
    ```
-   $ mincli
+   $ mincloud
    用法：
-    mincli <command>
+    mincloud <command>
 
    支持的 command 有：
       delete, deploy, invoke, list, login, logout, new
 
-   - mincli: v1.1.0
+   - mincloud: v1.1.0
    - node: v8.10.0
    ```
 
@@ -41,10 +41,10 @@ flag       | 说明
 
 ### 删除云函数
 
-必须先登录，请参考 `mincli login`。谨慎操作，此操作会将服务器上的云函数删除。
+必须先登录，请参考 `mincloud login`。谨慎操作，此操作会将服务器上的云函数删除。
 
 ```
-$ mincli delete <funciton_name>
+$ mincloud delete <funciton_name>
 ```
 
 参数          | 必填  | 默认值 |  说明
@@ -53,10 +53,10 @@ function_name | 是    | 无     | 已经存在的云函数
 
 ### 部署云函数
 
-必须先登录，请参考 `mincli login`。
+必须先登录，请参考 `mincloud login`。
 
 ```
-$ mincli deploy <function_name> [cloud_function_root] [-m remark]
+$ mincloud deploy <function_name> [cloud_function_root] [-m remark]
 ```
 
 参数                | 必填  | 默认值        |  说明
@@ -71,10 +71,10 @@ flag          | 说明
 
 ### 调用云函数
 
-必须先登录，请参考 `mincli login`。
+必须先登录，请参考 `mincloud login`。
 
 ```
-$ mincli invoke <funciton_name> [data]
+$ mincloud invoke <funciton_name> [data]
 ```
 
 参数          | 必填  | 默认值      |  说明
@@ -84,18 +84,18 @@ data          | 否    | 空对象 `{}` | JSON 数据
 
 ### 列出云函数
 
-必须先登录，请参考 `mincli login`。
+必须先登录，请参考 `mincloud login`。
 
 ```
-$ mincli list
+$ mincloud list
 ```
 
 ### 登录
 
-使用知晓云[客户端凭证](https://cloud.minapp.com/dashboard/#/app/settings/app/)登录，令牌将保存在本地文件 `.minclirc` 中；若过期，请重新登录。
+使用知晓云[客户端凭证](https://cloud.minapp.com/dashboard/#/app/settings/app/)登录，令牌将保存在本地文件 `.mincloudrc` 中；若过期，请重新登录。
 
 ```
-$ mincli login <client_id> <client_secret>
+$ mincloud login <client_id> <client_secret>
 ```
 
 参数          | 必填  | 默认值 |  说明
@@ -106,7 +106,7 @@ client_secret | 是    | 无     | 知晓云的客户端密钥
 ### 注销
 
 ```
-$ mincli logout
+$ mincloud logout
 ```
 
 ### 本地创建一个云函数文件
@@ -114,7 +114,7 @@ $ mincli logout
 此命令将创建一个简单的云函数，文件夹即函数名，入口文件即 `<function_name>/index.js`。
 
 ```
-$ mincli new <function_name> [cloud_function_root]
+$ mincloud new <function_name> [cloud_function_root]
 ```
 
 参数                | 必填  | 默认值        |  说明

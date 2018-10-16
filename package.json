@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "name": "mincli",
-  "description": "mincli is a faas cli",
+  "name": "mincloud",
+  "description": "mincloud is a ifanr faas cli",
   "keywords": [
     "faas",
     "cli"
