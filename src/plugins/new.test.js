@@ -1,3 +1,4 @@
+import nock from 'nock'
 import path from 'path'
 import rimraf from 'rimraf'
 import util from 'util'
@@ -9,9 +10,29 @@ const rm = util.promisify(rimraf)
 const pmkdirp = util.promisify(mkdirp)
 const config = {
   oshome: __dirname,
-  prefix: 'new_test'
+  prefix: 'new_test',
+  env: { new_test_access_token: '123' }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
+
+const funcName = 'new_test'
+const host = 'https://cloud.minapp.com'
+const link = '/oserve/v1.3/cloud-function/'
+
+const funcCode =
+  'exports.main = function functionName(event, callback) {\n  callback(null, "hello world")\n}'
+const response = {
+  audit_status: 'approved',
+  created_at: 1535903214,
+  created_by: 'somebody',
+  function_code: funcCode,
+  id: 847,
+  name: funcName,
+  plan_circle: 'P_FREE',
+  remark: '',
+  updated_at: 1537710962,
+  updated_by: 'somebody'
+}
 
 describe('cli login command', () => {
   it('new command with nothing', async () => {
@@ -21,17 +42,24 @@ describe('cli login command', () => {
   })
 
   it('new with specific function name', async () => {
-    const name = 'new_commannd_test_folder'
-    const folderPath = path.join(process.cwd(), name)
+    const folderPath = path.join(process.cwd(), funcName)
     const filePath = path.join(folderPath, 'index.js')
-    expect.assertions(3)
     const e = await engine(config)
+    expect.assertions(3)
 
     // 监听 console.log
     let logStore = ''
     console.log = jest.fn(output => (logStore += output))
 
-    await e.cli.new(name)
+    const reqObj = {
+      name: funcName,
+      function_code: funcCode
+    }
+    nock(host)
+      .post(link, reqObj)
+      .reply(200, response)
+
+    await e.cli.new(funcName)
     await expect(fs.statSync(folderPath).isDirectory()).toBe(true)
     await expect(fs.existsSync(filePath)).toBe(true)
     expect(logStore).toBe(
@@ -41,7 +69,7 @@ describe('cli login command', () => {
         folderPath,
         filePath,
         '',
-        `- 函数名：${name}`,
+        `- 函数名：${funcName}`,
         `- 函数根目录: ./`
       ].join('')
     )
@@ -50,18 +78,26 @@ describe('cli login command', () => {
   })
 
   it('new with specific function name and specific target', async () => {
-    const name = 'new_command_test_with_target_folder'
     const target = 'new_command_test_target_folder'
     const targetPath = path.join(process.cwd(), target)
-    const funcPath = path.join(targetPath, name)
+    const funcPath = path.join(targetPath, funcName)
     const e = await engine(config)
     expect.assertions(3)
 
     // 监听 console.log
     let logStore = ''
     console.log = jest.fn(output => (logStore += output))
+
+    const reqObj = {
+      name: funcName,
+      function_code: funcCode
+    }
+    nock(host)
+      .post(link, reqObj)
+      .reply(200, response)
+
     await pmkdirp(funcPath)
-    await e.cli.new(name, target)
+    await e.cli.new(funcName, target)
     await expect(fs.statSync(funcPath).isDirectory()).toBe(true)
     await expect(fs.existsSync(path.join(funcPath, 'index.js'))).toBe(true)
     expect(logStore).toBe(
@@ -71,7 +107,7 @@ describe('cli login command', () => {
         funcPath,
         path.join(funcPath, 'index.js'),
         '',
-        `- 函数名：${name}`,
+        `- 函数名：${funcName}`,
         `- 函数根目录: ${target}`
       ].join('')
     )

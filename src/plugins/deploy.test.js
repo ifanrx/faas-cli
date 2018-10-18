@@ -8,15 +8,16 @@ import prettyjson from 'prettyjson'
 import engine from '../engine'
 
 const rm = util.promisify(rimraf)
+const funcName = 'deploy_test'
 const host = 'https://cloud.minapp.com'
-const link = '/oserve/v1.3/cloud-function/'
+const link = `/oserve/v1.3/cloud-function/${funcName}/`
 const config = {
   prefix: 'deploy_test',
   oshome: __dirname,
   env: { deploy_test_access_token: '123' }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
-const funcName = 'deploy_test'
+
 const funcCode =
   'exports.main = function functionName(event, callback) {\n  callback(null, "hello world")\n}'
 const response = {
@@ -60,7 +61,7 @@ describe('cli deploy command', () => {
       function_code: funcCode
     }
     nock(host)
-      .post(link, reqObj)
+      .patch(link, reqObj)
       .reply(200, response)
 
     await e.cli.deploy(funcName)
@@ -76,7 +77,7 @@ describe('cli deploy command', () => {
     })
 
     nock(host)
-      .post(link, reqObj)
+      .patch(link, reqObj)
       .reply(200, response)
 
     await e.cli.deploy(funcName)
@@ -113,7 +114,7 @@ describe('cli deploy command', () => {
 
     const messageResp = { ...response, remark: message }
     nock(host)
-      .post(link, reqObj)
+      .patch(link, reqObj)
       .reply(200, messageResp)
 
     await e.cli.deploy(funcName)
