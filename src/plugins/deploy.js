@@ -50,8 +50,8 @@ export const cli = ensureAuth(
     const remark = engine.config.get('message')
 
     const response = await engine.request({
-      uri: '/oserve/v1.3/cloud-function/',
-      method: 'POST',
+      uri: `/oserve/v1.3/cloud-function/${functionName}/`,
+      method: 'PATCH',
       json: {
         name: functionName,
         function_code: functionCode,

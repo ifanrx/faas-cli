@@ -111,13 +111,22 @@ $ mincloud logout
 
 ### 本地创建一个云函数文件
 
-此命令将创建一个简单的云函数，文件夹即函数名，入口文件即 `<function_name>/index.js`。
+必须先登录，请参考 `mincloud login`。
+
+此命令将在服务器上创建一个简单的云函数，本地创建云函数代码，
+文件夹即函数名，入口文件即 `<function_name>/index.js`。
 
 ```
-$ mincloud new <function_name> [cloud_function_root]
+$ mincloud new <function_name> [cloud_function_root] [-m remark]
 ```
 
 参数                | 必填  | 默认值        |  说明
 --------------------|-------|---------------|--------------------------------------------------------------------------
 function_name       | 是    | 无            | 云函数名
 cloud_function_root | 否    | 当前目录 `./` | 用于存放云函数代码的本地目录
+
+
+flag          | 说明
+--------------|------------------------------------
+-m, --message | 备注信息
+

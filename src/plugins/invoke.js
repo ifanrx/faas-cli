@@ -1,27 +1,41 @@
 import { usageError, ensureAuth, formatByte } from '../utils'
 
 const formatResult = data => {
-  const result = `测试结果：${data.code ? '失败' : '成功'}
-  返回结果：
-  ${
-  data.code
-    ? `
-    错误类型：${data.error.type}
-    错误信息：${data.error.message}
-    错误堆栈：${data.error.stack}`
-    : `${data.data}`
-}
+  const INDENTATION = '  '
+  const result = []
+  result.push(`测试结果：${data.code ? '失败' : '成功'}`)
+  result.push(`${INDENTATION}返回结果：`)
+  if (data.code) {
+    result.push(`${INDENTATION}错误类型：${data.error.type}`)
+    result.push(`${INDENTATION}错误信息：${data.error.message}`)
+    result.push(`${INDENTATION}错误堆栈：${data.error.stack}`)
+  } else {
+    if (typeof data.data === 'object') {
+      if (Object.keys(data.data).length > 0) {
+        JSON.stringify(data.data, null, 2).split('\n').forEach(item => {
+          result.push(`${INDENTATION}${item}`)
+        })
+      } else {
+        result.push(`${INDENTATION}${'{}'}`)
+      }
+    } else {
+      result.push(`${INDENTATION}${data.data}`)
+    }
+  }
+
+  const others = `
 
 摘要：
   任务 ID：${data.job_id}
-  运行时间：${data.execution_time}
-  计费时间：${data.billing_time}
+  运行时间：${data.execution_time} ms
+  计费时间：${data.billing_time} ms
   占用内存：${formatByte(data.mem_usage)}
 
 日志：
   ${data.log.replace('\n', '\n  ')}
 `
-  return result
+
+  return result.join('\n') + others
 }
 
 export const cli = ensureAuth(async (engine, functionName, data = {}) => {
