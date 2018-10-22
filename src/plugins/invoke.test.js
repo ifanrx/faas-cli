@@ -28,8 +28,8 @@ const formatResult = data => {
 
 摘要：
   任务 ID：${data.job_id}
-  运行时间：${data.execution_time}
-  计费时间：${data.billing_time}
+  运行时间：${data.execution_time} ms
+  计费时间：${data.billing_time} ms
   占用内存：${formatByte(data.mem_usage)}
 
 日志：
