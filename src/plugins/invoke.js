@@ -12,9 +12,11 @@ const formatResult = data => {
   } else {
     if (typeof data.data === 'object') {
       if (Object.keys(data.data).length > 0) {
-        JSON.stringify(data.data, null, 2).split('\n').forEach(item => {
-          result.push(`${INDENTATION}${item}`)
-        })
+        JSON.stringify(data.data, null, 2)
+          .split('\n')
+          .forEach(item => {
+            result.push(`${INDENTATION}${item}`)
+          })
       } else {
         result.push(`${INDENTATION}${'{}'}`)
       }
