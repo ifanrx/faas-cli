@@ -49,20 +49,43 @@ export const cli = ensureAuth(
 
     const remark = engine.config.get('message')
 
-    const response = await engine.request({
-      uri: `/oserve/v1.3/cloud-function/${functionName}/`,
-      method: 'PATCH',
-      json: {
-        name: functionName,
-        function_code: functionCode,
-        remark
-      }
-    })
+    try {
+      const response = await engine.request({
+        uri: `/oserve/v1.3/cloud-function/${functionName}/`,
+        method: 'PATCH',
+        json: {
+          name: functionName,
+          function_code: functionCode,
+          remark
+        }
+      })
 
-    if (engine.config.get('json')) {
-      console.log(JSON.stringify(response.body))
-    } else {
-      console.log(prettyjson.render(response.body))
+      if (engine.config.get('json')) {
+        console.log(JSON.stringify(response.body))
+      } else {
+        console.log(prettyjson.render(response.body))
+      }
+    } catch (err) {
+      // 如果不存在则尝试创建
+      if (err.type === 'EUSAGE') {
+        const createResponse = await engine.request({
+          uri: '/oserve/v1.3/cloud-function/',
+          method: 'POST',
+          json: {
+            name: functionName,
+            function_code: functionCode,
+            remark
+          }
+        })
+
+        if (engine.config.get('json')) {
+          console.log(JSON.stringify(createResponse.body))
+        } else {
+          console.log(prettyjson.render(createResponse.body))
+        }
+      } else {
+        throw err
+      }
     }
   }
 )
