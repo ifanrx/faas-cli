@@ -11,7 +11,10 @@ const host = 'https://cloud.minapp.com'
 const config = {
   prefix: 'invoke_test',
   oshome: __dirname,
-  env: { invoke_test_access_token: '123' }
+  env: {
+    invoke_test_client_id: '123',
+    invoke_test_tokens: '123:123'
+  }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
 const formatResult = data => {
@@ -67,16 +70,16 @@ describe('cli invoke command', () => {
       .post(link, { function_name: functionName, data: {}, sync: true })
       .reply(200, response)
 
-    let spyMessage = ''
+    let spyMessage = []
     const spy = jest
       .spyOn(global.console, 'log')
-      .mockImplementation(msg => (spyMessage = msg))
+      .mockImplementation(msg => spyMessage.push(msg))
 
     const res = await e.cli.invoke(functionName)
 
     expect(res.body).toMatchObject(response)
     expect(spy).toHaveBeenCalled()
-    expect(spyMessage).toBe(formatResult(res.body))
+    expect(spyMessage[0]).toBe(formatResult(res.body))
 
     spy.mockRestore()
     await rm(rcPath)
@@ -104,8 +107,8 @@ describe('cli invoke command', () => {
     expect.assertions(1)
     const e = await engine(config)
     // 监听 console.log
-    let logStore = ''
-    console.log = jest.fn(output => (logStore = output))
+    let logStore = []
+    console.log = jest.fn(output => logStore.push(output))
     const functionName = 'invoke_valid_data_test'
     const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
     const postObj = {
@@ -117,7 +120,7 @@ describe('cli invoke command', () => {
       .post(link, postObj)
       .reply(200, response)
     const res = await e.cli.invoke(functionName, JSON.stringify(postObj.data))
-    expect(logStore).toBe(formatResult(res.body))
+    expect(logStore[0]).toBe(formatResult(res.body))
 
     await rm(rcPath)
   })
@@ -128,12 +131,12 @@ describe('cli invoke command', () => {
       ...config,
       env: {
         [`${config.prefix}_json`]: true,
-        [`${config.prefix}_access_token`]: '123'
+        [`${config.prefix}_client_id`]: '123'
       }
     })
     // 监听 console.log
-    let logStore = ''
-    console.log = jest.fn(output => (logStore = output))
+    let logStore = []
+    console.log = jest.fn(output => logStore.push(output))
 
     const functionName = 'invoke_with_json'
     const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
@@ -147,7 +150,7 @@ describe('cli invoke command', () => {
       .post(link, postObj)
       .reply(200, response)
     const res = await e.cli.invoke(functionName, JSON.stringify(postObj.data))
-    expect(logStore).toBe(JSON.stringify(res.body))
+    expect(logStore[0]).toBe(JSON.stringify(res.body))
 
     await rm(rcPath)
   })

@@ -14,7 +14,10 @@ const link = `/oserve/v1.3/cloud-function/${funcName}/`
 const config = {
   prefix: 'deploy_test',
   oshome: __dirname,
-  env: { deploy_test_access_token: '123' }
+  env: {
+    deploy_test_client_id: '123',
+    deploy_test_tokens: '123:123'
+  }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
 
@@ -49,8 +52,8 @@ describe('cli deploy command', () => {
     await expect(e.cli.deploy(funcName)).rejects.toThrowError()
 
     // 监听 console.log
-    let logStore = ''
-    console.log = jest.fn(output => (logStore = output))
+    let logStore = []
+    console.log = jest.fn(output => logStore.push(output))
 
     // create function file
     const testFilePath = path.join(process.cwd(), funcName + '.js')
@@ -64,15 +67,16 @@ describe('cli deploy command', () => {
       .patch(link, reqObj)
       .reply(200, response)
 
+    logStore = []
     await e.cli.deploy(funcName)
-    expect(logStore).toBe(prettyjson.render(response))
+    expect(logStore[0]).toBe(prettyjson.render(response))
 
     // with json flag
     e = await engine({
       ...config,
       env: {
         [`${config.prefix}_json`]: true,
-        [`${config.prefix}_access_token`]: '123'
+        [`${config.prefix}_client_id`]: '123'
       }
     })
 
@@ -80,8 +84,9 @@ describe('cli deploy command', () => {
       .patch(link, reqObj)
       .reply(200, response)
 
+    logStore = []
     await e.cli.deploy(funcName)
-    expect(logStore).toBe(JSON.stringify(response))
+    expect(logStore[0]).toBe(JSON.stringify(response))
 
     // clean
     await rm(testFilePath)
@@ -93,14 +98,15 @@ describe('cli deploy command', () => {
       ...config,
       env: {
         [`${config.prefix}_message`]: message,
-        [`${config.prefix}_access_token`]: '123'
+        [`${config.prefix}_client_id`]: '123',
+        [`${config.prefix}_tokens`]: '123:123'
       }
     })
     expect.assertions(1)
 
     // 监听 console.log
-    let logStore = ''
-    console.log = jest.fn(output => (logStore = output))
+    let logStore = []
+    console.log = jest.fn(output => logStore.push(output))
 
     // create function file
     const testFilePath = path.join(process.cwd(), funcName + '.js')
@@ -118,7 +124,7 @@ describe('cli deploy command', () => {
       .reply(200, messageResp)
 
     await e.cli.deploy(funcName)
-    expect(logStore).toBe(prettyjson.render(messageResp))
+    expect(logStore[0]).toBe(prettyjson.render(messageResp))
 
     await rm(testFilePath)
     await rm(rcPath)

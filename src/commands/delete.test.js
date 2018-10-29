@@ -10,7 +10,10 @@ const host = 'https://cloud.minapp.com'
 const config = {
   prefix: 'delete_test',
   oshome: __dirname,
-  env: { delete_test_access_token: '123' }
+  env: {
+    delete_test_client_id: '123',
+    delete_test_tokens: '123:123'
+  }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
 
@@ -33,10 +36,10 @@ describe('cli delete command', () => {
 
     await expect(e.cli.delete(functionName)).rejects.toThrowError()
 
-    let spyMessage = ''
+    const spyMessage = []
     const spy = jest
       .spyOn(global.console, 'log')
-      .mockImplementation(msg => (spyMessage = msg))
+      .mockImplementation(msg => spyMessage.push(msg))
     nock(host)
       .delete(link)
       .reply(204)
@@ -45,7 +48,8 @@ describe('cli delete command', () => {
 
     expect(res.body).toBe('')
     expect(spy).toHaveBeenCalled()
-    expect(spyMessage).toBe('删除成功')
+
+    expect(spyMessage[0]).toBe('删除成功')
 
     await rm(rcPath)
     spy.mockRestore()

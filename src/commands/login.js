@@ -1,4 +1,6 @@
-import { usageError } from '../utils'
+import fs from 'fs'
+import path from 'path'
+import { usageError, decodeTokens, encodeTokens } from '../utils'
 
 export async function cli (engine, clientId, clientSecret) {
   if (!clientId || !clientSecret) {
@@ -37,21 +39,35 @@ export async function cli (engine, clientId, clientSecret) {
   if (engine.config.get('json')) {
     console.log(response.body)
   } else {
-    await save(engine, JSON.parse(response.body))
+    await save(engine, JSON.parse(response.body), clientId)
   }
 
   return response
 }
 
-function save (engine, data) {
+function save (engine, data, clientId) {
   return new Promise((resolve, reject) => {
-    engine.config
-      .set('access_token', data.access_token, 'config')
-      .on('save', () => {
-        console.log('登录成功')
-        resolve()
-      })
-      .on('error', reject)
-      .save('config', 'ini')
+    let tokens = decodeTokens(engine.config.get('tokens'))
+    tokens[clientId] = data.access_token
+    tokens = encodeTokens(tokens)
+
+    // 登录成功，保存全局 tokens，并且更新全局 client_id
+    engine.config.set('client_id', clientId, 'config')
+    engine.config.set('tokens', tokens, 'config')
+
+    // 如果标记 local，保存 client_id 到当前工作目录
+    if (engine.config.get('local')) {
+      const pwdInitFile = path.resolve(`./.${engine.config.get('prefix')}rc`)
+      fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
+    }
+
+    engine.config.on('save', () => {
+      console.log('登录成功')
+      resolve()
+    })
+
+    engine.config.on('error', reject)
+
+    engine.config.save('config', 'ini')
   })
 }
