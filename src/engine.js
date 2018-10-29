@@ -1,14 +1,13 @@
 import request from 'request'
-import 'util.promisify/shim'
 import util from 'util'
 
 import loadConfig from './config'
-import loadPlugins from './plugins'
+import loadCommands from './commands'
 import { afterRequest } from './utils'
 
 export default async function engine (opts) {
   const config = await loadConfig(opts)
-  const plugins = await loadPlugins()
+  const commands = await loadCommands()
 
   const defaultRequestOpts = {}
   const accessToken = config.get('access_token')
@@ -26,8 +25,8 @@ export default async function engine (opts) {
   const engine = {
     request: afterRequest(util.promisify(request.defaults(defaultRequestOpts))),
     config,
-    cli: Object.keys(plugins).reduce((obj, k) => {
-      obj[k] = (...args) => plugins[k].cli(engine, ...args)
+    cli: Object.keys(commands).reduce((obj, k) => {
+      obj[k] = (...args) => commands[k].cli(engine, ...args)
       return obj
     }, {})
   }
