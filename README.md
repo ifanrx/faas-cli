@@ -68,7 +68,6 @@ flag          | 说明
 --------------|------------------------------------
 -m, --message | 备注信息
 
-
 ### 调用云函数
 
 必须先登录，请参考 `mincloud login`。
@@ -94,6 +93,10 @@ $ mincloud list
 
 使用知晓云[客户端凭证](https://cloud.minapp.com/dashboard/#/app/settings/app/)登录，令牌将保存在本地文件 `.mincloudrc` 中；若过期，请重新登录。
 
+查找令牌的步骤：
+1. 在当前工作目录的 `.mincloudrc` 中查找 `client_id`；若找不到，则在用户根目录的 `.mincloudrc` 中查找。
+2. 通过找到的 `client_id` 到用户根目录的 `.mincloudrc` 中查找客户端登录凭证。
+
 ```
 $ mincloud login <client_id> <client_secret>
 ```
@@ -102,6 +105,10 @@ $ mincloud login <client_id> <client_secret>
 --------------|-------|--------|-----------------------
 client_id     | 是    | 无     | 知晓云的客户端 ID
 client_secret | 是    | 无     | 知晓云的客户端密钥
+
+flag          | 说明
+--------------|------------------------------------
+-l, --local   | 在当前工作目录保存 client_id
 
 ### 注销
 
@@ -125,8 +132,6 @@ $ mincloud new <function_name> [cloud_function_root] [-m remark]
 function_name       | 是    | 无            | 云函数名
 cloud_function_root | 否    | 当前目录 `./` | 用于存放云函数代码的本地目录
 
-
 flag          | 说明
 --------------|------------------------------------
 -m, --message | 备注信息
-
