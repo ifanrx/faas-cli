@@ -131,7 +131,8 @@ describe('cli invoke command', () => {
       ...config,
       env: {
         [`${config.prefix}_json`]: true,
-        [`${config.prefix}_client_id`]: '123'
+        [`${config.prefix}_client_id`]: '123',
+        invoke_test_tokens: '123:123'
       }
     })
     // 监听 console.log

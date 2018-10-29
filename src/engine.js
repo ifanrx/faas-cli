@@ -11,7 +11,6 @@ export default async function engine (opts) {
 
   const defaultRequestOpts = {}
 
-  // 首先读取当前工作目录的 client_id
   const clientId = config.get('client_id')
   const tokens = decodeTokens(config.get('tokens'))
 

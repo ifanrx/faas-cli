@@ -76,7 +76,8 @@ describe('cli deploy command', () => {
       ...config,
       env: {
         [`${config.prefix}_json`]: true,
-        [`${config.prefix}_client_id`]: '123'
+        [`${config.prefix}_client_id`]: '123',
+        deploy_test_tokens: '123:123'
       }
     })
 

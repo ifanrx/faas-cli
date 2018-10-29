@@ -65,7 +65,10 @@ exports.errorHandler = function errorHandler (err) {
 }
 
 exports.ensureAuth = cli => async (engine, ...args) => {
-  if (!engine.config.get('client_id')) throw exports.authError('请先登录')
+  const clientId = engine.config.get('client_id')
+  const tokens = exports.decodeTokens(engine.config.get('tokens'))
+
+  if (!clientId || !tokens[clientId]) throw exports.authError('请先登录')
   return cli(engine, ...args)
 }
 
