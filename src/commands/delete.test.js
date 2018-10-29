@@ -44,9 +44,8 @@ describe('cli delete command', () => {
       .delete(link)
       .reply(204)
 
-    const res = await e.cli.delete(functionName)
+    await e.cli.delete(functionName)
 
-    expect(res.body).toBe('')
     expect(spy).toHaveBeenCalled()
 
     expect(spyMessage[0]).toBe('删除成功')
