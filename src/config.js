@@ -32,9 +32,10 @@ export default function loadConfig (opts = {}) {
     const parsed = nopt(
       {
         json: [Boolean],
-        message: [String]
+        message: [String],
+        local: [Boolean]
       },
-      { j: '--json', m: '--message' },
+      { j: '--json', m: '--message', l: '--local' },
       opts.argv,
       2
     )
@@ -50,11 +51,22 @@ export default function loadConfig (opts = {}) {
     }
 
     const config = cc(parsed, cc.env(`${opts.prefix}_`, opts.env))
-      .addFile(iniFile, 'ini', 'config')
-      .add(defaults)
-      .on('load', () => {
-        resolve(config)
-      })
-      .on('error', reject)
+
+    // 优先读取当前工作目录下的配置文件
+    const pwdInitFile = path.resolve(`./.${opts.prefix}rc`)
+    if (fs.existsSync(pwdInitFile)) {
+      config.addFile(pwdInitFile, 'ini', 'pwdconfig')
+    }
+
+    // 读取用户根目录下的配置文件
+    config.addFile(iniFile, 'ini', 'config')
+
+    config.add(defaults)
+
+    config.on('load', () => {
+      resolve(config)
+    })
+
+    config.on('error', reject)
   })
 }

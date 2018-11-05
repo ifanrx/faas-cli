@@ -11,7 +11,7 @@ const host = 'https://cloud.minapp.com'
 const config = {
   prefix: 'list_test',
   oshome: __dirname,
-  env: { list_test_access_token: '123' }
+  env: { list_test_client_id: '123', list_test_tokens: '123:123' }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
 
@@ -44,10 +44,11 @@ describe('cli list command', () => {
   const query = { limit: 20, offset: 0 }
 
   // 监听 console.log
-  let logStore = ''
-  console.log = jest.fn(output => (logStore = output))
+  let logStore = []
+  console.log = jest.fn(output => logStore.push(output))
 
   it('list command with nothing', async () => {
+    logStore = []
     const e = await engine(config)
     expect.assertions(3)
 
@@ -69,13 +70,18 @@ describe('cli list command', () => {
       状态: item.audit_status
     }))
     expect(res.body).toMatchObject(response)
-    expect(logStore).toBe(columnify(view))
+    expect(logStore[0]).toBe(columnify(view))
   })
 
   it('list command with json', async () => {
+    logStore = []
     const e = await engine({
       ...config,
-      env: { list_test_json: true, list_test_access_token: '123' }
+      env: {
+        list_test_json: true,
+        list_test_client_id: '123',
+        list_test_tokens: '123:123'
+      }
     })
     expect.assertions(1)
 
@@ -86,6 +92,6 @@ describe('cli list command', () => {
 
     const res = await e.cli.list()
     await rm(rcPath)
-    expect(logStore).toBe(JSON.stringify(res.body))
+    expect(logStore[0]).toBe(JSON.stringify(res.body))
   })
 })

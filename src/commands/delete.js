@@ -10,7 +10,7 @@ export const cli = ensureAuth(async (engine, functionName) => {
     )
   }
 
-  const response = await engine.request({
+  await engine.request({
     uri: `/oserve/v1.3/cloud-function/${functionName}/`,
     method: 'DELETE',
     headers: {
@@ -18,7 +18,7 @@ export const cli = ensureAuth(async (engine, functionName) => {
     }
   })
 
-  console.log('删除成功')
-
-  return response
+  if (!engine.config.get('json')) {
+    console.log('删除成功')
+  }
 })

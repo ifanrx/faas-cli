@@ -11,7 +11,10 @@ const pmkdirp = util.promisify(mkdirp)
 const config = {
   oshome: __dirname,
   prefix: 'new_test',
-  env: { new_test_access_token: '123' }
+  env: {
+    new_test_client_id: '123',
+    new_test_tokens: '123:123'
+  }
 }
 const rcPath = path.join(config.oshome, `.${config.prefix}rc`)
 
@@ -62,17 +65,16 @@ describe('cli login command', () => {
     await e.cli.new(funcName)
     await expect(fs.statSync(folderPath).isDirectory()).toBe(true)
     await expect(fs.existsSync(filePath)).toBe(true)
-    expect(logStore).toBe(
-      [
-        '创建成功',
-        '',
-        folderPath,
-        filePath,
-        '',
-        `- 函数名：${funcName}`,
-        `- 函数根目录: ./`
-      ].join('')
-    )
+    const expectedStr = [
+      '创建成功',
+      '',
+      folderPath,
+      filePath,
+      '',
+      `- 函数名：${funcName}`,
+      `- 函数根目录: ./`
+    ].join('')
+    expect(logStore.indexOf(expectedStr) > -1).toBe(true)
     await rm(folderPath)
     await rm(rcPath)
   })
@@ -100,17 +102,16 @@ describe('cli login command', () => {
     await e.cli.new(funcName, target)
     await expect(fs.statSync(funcPath).isDirectory()).toBe(true)
     await expect(fs.existsSync(path.join(funcPath, 'index.js'))).toBe(true)
-    expect(logStore).toBe(
-      [
-        '创建成功',
-        '',
-        funcPath,
-        path.join(funcPath, 'index.js'),
-        '',
-        `- 函数名：${funcName}`,
-        `- 函数根目录: ${target}`
-      ].join('')
-    )
+    const expectedStr = [
+      '创建成功',
+      '',
+      funcPath,
+      path.join(funcPath, 'index.js'),
+      '',
+      `- 函数名：${funcName}`,
+      `- 函数根目录: ${target}`
+    ].join('')
+    expect(logStore.indexOf(expectedStr) > -1).toBe(true)
     await rm(targetPath)
     await rm(rcPath)
   })
