@@ -51,14 +51,15 @@ function save (engine, data, clientId) {
     tokens[clientId] = data.access_token
     tokens = encodeTokens(tokens)
 
-    // 登录成功，保存全局 tokens，并且更新全局 client_id
-    engine.config.set('client_id', clientId, 'config')
+    // 登录成功，更新全局 tokens
     engine.config.set('tokens', tokens, 'config')
 
     // 如果标记 local，保存 client_id 到当前工作目录
     if (engine.config.get('local')) {
       const pwdInitFile = path.resolve(`./.${engine.config.get('prefix')}rc`)
       fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
+    } else { // 否则更新全局的 client_id
+      engine.config.set('client_id', clientId, 'config')
     }
 
     engine.config.on('save', () => {
