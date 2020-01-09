@@ -33,9 +33,15 @@ export default function loadConfig (opts = {}) {
       {
         json: [Boolean],
         message: [String],
-        local: [Boolean]
+        local: [Boolean],
+        env: [String]
       },
-      { j: '--json', m: '--message', l: '--local' },
+      {
+        j: '--json',
+        m: '--message',
+        l: '--local',
+        e: '--env'
+      },
       opts.argv,
       2
     )
