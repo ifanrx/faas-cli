@@ -15,10 +15,15 @@ export default async function engine (opts) {
   const tokens = decodeTokens(config.get('tokens'))
 
   if (clientId && tokens[clientId]) {
-    defaultRequestOpts['headers'] = {
+    const headers = {
       'User-Agent': config.get('ua'),
       Authorization: `Bearer ${tokens[clientId]}`
     }
+    const envid = config.get('envid')
+    if (envid) {
+      headers['X-Hydrogen-Env-ID'] = envid
+    }
+    defaultRequestOpts['headers'] = headers
   }
   const baseUrl = config.get('base_url')
   if (baseUrl) {

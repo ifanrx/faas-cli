@@ -58,7 +58,8 @@ function save (engine, data, clientId) {
     if (engine.config.get('local')) {
       const pwdInitFile = path.resolve(`./.${engine.config.get('prefix')}rc`)
       fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
-    } else { // 否则更新全局的 client_id
+    } else {
+      // 否则更新全局的 client_id
       engine.config.set('client_id', clientId, 'config')
     }
 
