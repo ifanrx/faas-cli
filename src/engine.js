@@ -13,13 +13,17 @@ export default async function engine (opts) {
 
   const clientId = config.get('client_id')
   const tokens = decodeTokens(config.get('tokens'))
+  let envid = config.get('env')
+  // env 与第三方库默认参数重名，需要特殊处理一下
+  if (typeof envid !== 'string') {
+    envid = ''
+  }
 
   if (clientId && tokens[clientId]) {
     const headers = {
       'User-Agent': config.get('ua'),
       Authorization: `Bearer ${tokens[clientId]}`
     }
-    const envid = config.get('envid')
     if (envid) {
       headers['X-Hydrogen-Env-ID'] = envid
     }
@@ -43,6 +47,9 @@ export default async function engine (opts) {
           console.log(`- client_id: ${clientId}`)
           console.log(`- ${config.get('prefix')}: v${config.get('version')}`)
           console.log(`- node: ${process.version}`)
+          if (envid) {
+            console.log(`- env: ${envid}`)
+          }
         }
 
         return res
