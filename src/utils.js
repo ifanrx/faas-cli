@@ -1,4 +1,6 @@
 import log from 'npmlog'
+import isPlainObject from 'lodash.isplainobject'
+
 import pkg from '../package.json'
 
 function addError (type) {
@@ -133,3 +135,22 @@ exports.encodeTokens = (obj = {}) =>
   Object.keys(obj)
     .map(key => `${key}:${obj[key]}`)
     .join(',')
+
+/**
+ * 校验是否为 JSON 格式
+ * 必须为对象 {} 开头和结尾
+ * @param {*} content fs 文件读取的内容
+ * @returns 解析后的对象
+ */
+exports.validateJSON = content => {
+  try {
+    const data = JSON.parse(content)
+
+    if (!isPlainObject(data)) return null
+
+    return data
+  } catch (error) {
+    console.log('what error', error)
+    return null
+  }
+}
