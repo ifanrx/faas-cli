@@ -44,7 +44,7 @@ export const cli = ensureAuth(
         '用法：',
         `    ${engine.config.get(
           'prefix'
-        )} schema <operation_type> <schema_name>`
+        )} schema <operation_type> <schema_name> [schema_root_folder]`
       )
     }
 
@@ -82,7 +82,7 @@ export const cli = ensureAuth(
 
     if (schemaConfig.indexes && schemaConfig.indexes.length) {
       /**
-       * openapi 只支持单个创建索引
+       * open-api 只支持单个创建索引
        * 需要循环遍历，逐个创建
        * 如果创建索引时出错，需把前面创建的数据表删除
        */
