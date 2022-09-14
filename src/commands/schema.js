@@ -17,7 +17,7 @@ const OPERATION_TYPE = {
  */
 const createIndex = async (engine, schemaId, schemaIndex) => {
   return await engine.request({
-    uri: `/oserve/v2.8/schema/${schemaId}/index/`,
+    uri: `/oserve/v2.6/schema/${schemaId}/index/`,
     method: 'POST',
     json: schemaIndex
   })
@@ -80,7 +80,7 @@ export const cli = ensureAuth(
       json: schemaConfig
     })
 
-    if (schemaConfig.indexes?.length) {
+    if (schemaConfig.indexes && schemaConfig.indexes.length) {
       /**
        * openapi 只支持单个创建索引
        * 需要循环遍历，逐个创建
@@ -88,9 +88,9 @@ export const cli = ensureAuth(
        */
       for (const schemaIndex of schemaConfig.indexes) {
         try {
-          await createIndex(engine, response.id, schemaIndex)
+          await createIndex(engine, response.body.id, schemaIndex)
         } catch (error) {
-          await removeSchema(engine, response.id)
+          await removeSchema(engine, response.body.id)
           throw error
         }
       }
