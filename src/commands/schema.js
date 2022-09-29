@@ -1,11 +1,11 @@
 import path from 'path'
 import fs from 'fs'
-import prettyjson from 'prettyjson'
 
-import { usageError, ensureAuth, validateJSON } from '../utils'
+import {usageError, ensureAuth, validateJSON, validateJSONArray} from '../utils'
+import {cloneDeep} from 'lodash'
 
 const OPERATION_TYPE = {
-  CREATE: 'create'
+  IMPORT: 'import'
 }
 
 /**
@@ -32,6 +32,19 @@ const removeSchema = async (engine, schemaId) => {
   return engine.request({
     uri: `/oserve/v1.8/table/${schemaId}/`,
     method: 'DELETE'
+  })
+}
+
+/**
+ * 新增数据表
+ * @param {*} engine
+ * @param {*} schemaConfig 数据表配置
+ */
+const createSchema = async (engine, schemaConfig) => {
+  return await engine.request({
+    uri: '/oserve/v1.8/table/',
+    method: 'POST',
+    json: schemaConfig
   })
 }
 
@@ -80,6 +93,58 @@ const replacePointerSchemaWithId = async (engine, schemaConfig) => {
   return schemaConfig
 }
 
+/**
+ * 创建数据表
+ * @param {*} engine
+ * @param {*} schemaConfig
+ */
+const importSchema = async (engine, schemaConfig) => {
+  schemaConfig = await replacePointerSchemaWithId(engine, schemaConfig)
+
+  const response = await createSchema(engine, schemaConfig)
+
+  if (!Array.isArray(schemaConfig.indexes)) return
+
+  /**
+   * open-api 只支持单个创建索引
+   * 需要循环遍历，逐个创建
+   * 如果创建索引时出错，需把前面创建的数据表删除
+   */
+  for (const schemaIndex of schemaConfig.indexes) {
+    try {
+      await createIndex(engine, response.body.id, schemaIndex)
+    } catch (error) {
+      await removeSchema(engine, response.body.id)
+      throw error
+    }
+  }
+
+  return response
+}
+
+const updateUserProfile = async (engine, schemaConfig) => {
+  // const tableId
+  const schemaList = await getSchemaList(engine)
+  schemaList.body = JSON.parse(schemaList.body)
+
+  const [userprofile] = schemaList.body.objects.filter(
+    item => item.name === '_userprofile'
+  )
+
+  delete schemaConfig.name
+
+  const res = await engine.request({
+    uri: `/oserve/v1.8/table/${userprofile.id}`,
+    method: 'PUT',
+    json: schemaConfig,
+    followRedirect: true
+  })
+
+  console.log('res', res)
+
+  return res
+}
+
 export const cli = ensureAuth(
   async (engine, operationType, schemaName, rootFolder = './') => {
     if (!operationType || !schemaName) {
@@ -113,42 +178,19 @@ export const cli = ensureAuth(
     }
 
     const fileContent = fs.readFileSync(targetFile, 'utf8')
-    let schemaConfig = validateJSON(fileContent)
+    const schemaConfig = validateJSON(fileContent)
 
     if (!schemaConfig) {
       throw usageError('数据表 JSON 格式错误')
     }
 
-    schemaConfig = await replacePointerSchemaWithId(engine, schemaConfig)
+    if (!Array.isArray(schemaConfig)) {
+      const schemaFunc =
+        schemaConfig.name === '_userprofile' ? updateUserProfile : importSchema
+      const response = await schemaFunc(engine, schemaConfig)
 
-    const response = await engine.request({
-      uri: '/oserve/v1.8/table/',
-      method: 'POST',
-      json: schemaConfig
-    })
-
-    if (schemaConfig.indexes && schemaConfig.indexes.length) {
-      /**
-       * open-api 只支持单个创建索引
-       * 需要循环遍历，逐个创建
-       * 如果创建索引时出错，需把前面创建的数据表删除
-       */
-      for (const schemaIndex of schemaConfig.indexes) {
-        try {
-          await createIndex(engine, response.body.id, schemaIndex)
-        } catch (error) {
-          await removeSchema(engine, response.body.id)
-          throw error
-        }
-      }
+      console.log('上传成功')
+      return response
     }
-
-    if (engine.config.get('json')) {
-      console.log(JSON.stringify(response.body))
-    } else {
-      console.log(prettyjson.render(response.body))
-    }
-
-    return response
   }
 )
