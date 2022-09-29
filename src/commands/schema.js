@@ -1,11 +1,14 @@
 import path from 'path'
 import fs from 'fs'
 
-import { usageError, ensureAuth, validateJSON } from '../utils'
+import {usageError, ensureAuth, validateJSON} from '../utils'
+import {isEqual} from 'lodash'
 
 const OPERATION_TYPE = {
   IMPORT: 'import'
 }
+
+const batchImportedSchema = []
 
 /**
  * 创建索引
@@ -52,10 +55,13 @@ const createSchema = async (engine, schemaConfig) => {
  * @param {*} engine
  */
 const getSchemaList = async engine => {
-  return engine.request({
+  const res = await engine.request({
     uri: '/oserve/v1.8/table/?limit=1000',
     method: 'GET'
   })
+
+  const body = JSON.parse(res.body)
+  return body.objects
 }
 
 /**
@@ -69,11 +75,10 @@ const replacePointerSchemaWithId = async (engine, schemaConfig) => {
   }
 
   const schemaList = await getSchemaList(engine)
-  schemaList.body = JSON.parse(schemaList.body)
 
   schemaConfig.schema.fields.forEach(item => {
     if (item.type === 'reference') {
-      const [correspondingSchema] = schemaList.body.objects.filter(schemaItem =>
+      const [correspondingSchema] = schemaList.filter(schemaItem =>
         [schemaItem.name, schemaItem.id].includes(item.schema_name)
       )
 
@@ -121,13 +126,15 @@ const importSchema = async (engine, schemaConfig) => {
   return response
 }
 
+/**
+ * 更新用户表
+ * 用户表是每个应用默认生成的，不能导入，只能更新
+ * @param {*} engine
+ * @param {*} schemaConfig
+ */
 const updateUserProfile = async (engine, schemaConfig) => {
   const schemaList = await getSchemaList(engine)
-  schemaList.body = JSON.parse(schemaList.body)
-
-  const [userprofile] = schemaList.body.objects.filter(
-    item => item.name === '_userprofile'
-  )
+  const [userprofile] = schemaList.filter(item => item.name === '_userprofile')
 
   delete schemaConfig.name // _userprofile 表名无法修改，否则报错
 
@@ -136,6 +143,137 @@ const updateUserProfile = async (engine, schemaConfig) => {
     method: 'PUT',
     json: schemaConfig
   })
+}
+
+/**
+ * 检验表是否已存在
+ * @param {*} engine
+ * @param {*} schemaConfig
+ */
+const validateExistedSchema = async (engine, schemaConfig) => {
+  const schemaList = await getSchemaList(engine)
+
+  const schemaNames = schemaConfig.map(item => item.name)
+
+  for (const item of schemaList) {
+    if (schemaNames.includes(item.name)) {
+      throw usageError(`${item.name} 表已存在`)
+    }
+  }
+}
+
+/**
+ * 上传带有 pointer 的数据表
+ * @param {*} engine
+ * @param {*} pointerSchema
+ * @param {*} previousPointerSchema
+ */
+const importPointerSchema = async (
+  engine,
+  pointerSchema,
+  previousPointerSchema
+) => {
+  if (!pointerSchema.length) return
+  if (isEqual(pointerSchema, previousPointerSchema)) {
+    throw usageError(
+      '找不到 Pointer 指向的数据表。如果数据表之间有循环依赖，请在控制台手动建表。'
+    )
+  }
+
+  const schemaList = await getSchemaList(engine)
+  const existedSchemaNames = schemaList.map(item => item.name)
+
+  /**
+   * 区分每个含有 pointer 的表是否都指向已存在的表
+   * 是则上传，否则待定
+   */
+
+  const pending = []
+  for (const item of pointerSchema) {
+    const pointers = item.schema.fields.reduce((acc, field) => {
+      if (field.type === 'reference') {
+        acc.push(field.schema_name)
+      }
+      return acc
+    }, [])
+
+    if (!pointers.every(pointer => existedSchemaNames.includes(pointer))) {
+      pending.push(item)
+      continue
+    }
+
+    const res = await importSchema(item)
+    batchImportedSchema.push(res.id)
+  }
+
+  await importPointerSchema(engine, pending, pointerSchema)
+}
+
+/**
+ * 反向删除已上传的数据表
+ * @param {*} engine
+ */
+const backwardRemoveSchema = async engine => {
+  for (let i = batchImportedSchema.length - 1; i >= 0; i--) {
+    const item = batchImportedSchema[i]
+    await removeSchema(engine, item.id)
+  }
+}
+
+/**
+ * 批量上传数据表
+ * @param {*} engine
+ * @param {*} schemaConfig
+ */
+const batchImportSchema = async (engine, schemaConfig) => {
+  // 批量模式下不上传用户表
+  schemaConfig = schemaConfig.filter(item => item.name !== '_userprofile')
+
+  /**
+   * 重要，必须先检查表是否存在
+   * 必须都不存在，方可上传
+   * 否则会错删数据表
+   */
+  await validateExistedSchema(engine, schemaConfig)
+
+  /**
+   * 分类含有 pointer 和不含有 pointer 的数据表
+   */
+  const {withoutPointer, withPointer} = schemaConfig.reduce(
+    (final, item) => {
+      const hasPointer = item.schema.fields.some(
+        field => field.type === 'reference'
+      )
+
+      hasPointer
+        ? final.withPointer.push(item)
+        : final.withoutPointer.push(item)
+      return final
+    },
+    {withoutPointer: [], withPointer: []}
+  )
+
+  try {
+    /**
+     * 1. 优先上传字段不包含 pointer 的数据表
+     */
+    for (const schemaConfig of withoutPointer) {
+      const res = await importSchema(engine, schemaConfig)
+      batchImportedSchema.push(res.id)
+    }
+
+    /**
+     * 2. 上传含有 pointer 的数据表
+     */
+    await importPointerSchema(engine, withPointer)
+  } catch (error) {
+    // 遇到错误，需把之前已上传的数据表均删除
+    await backwardRemoveSchema(engine)
+    console.error(error)
+    throw usageError('上传失败')
+  }
+
+  console.log('上传成功')
 }
 
 export const cli = ensureAuth(
@@ -185,5 +323,7 @@ export const cli = ensureAuth(
       console.log('上传成功')
       return response
     }
+
+    return batchImportSchema(engine, schemaConfig)
   }
 )
