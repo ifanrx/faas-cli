@@ -1,8 +1,7 @@
 import path from 'path'
 import fs from 'fs'
 
-import {usageError, ensureAuth, validateJSON, validateJSONArray} from '../utils'
-import {cloneDeep} from 'lodash'
+import { usageError, ensureAuth, validateJSON } from '../utils'
 
 const OPERATION_TYPE = {
   IMPORT: 'import'
@@ -41,7 +40,7 @@ const removeSchema = async (engine, schemaId) => {
  * @param {*} schemaConfig 数据表配置
  */
 const createSchema = async (engine, schemaConfig) => {
-  return await engine.request({
+  return engine.request({
     uri: '/oserve/v1.8/table/',
     method: 'POST',
     json: schemaConfig
@@ -123,7 +122,6 @@ const importSchema = async (engine, schemaConfig) => {
 }
 
 const updateUserProfile = async (engine, schemaConfig) => {
-  // const tableId
   const schemaList = await getSchemaList(engine)
   schemaList.body = JSON.parse(schemaList.body)
 
@@ -131,18 +129,13 @@ const updateUserProfile = async (engine, schemaConfig) => {
     item => item.name === '_userprofile'
   )
 
-  delete schemaConfig.name
+  delete schemaConfig.name // _userprofile 表名无法修改，否则报错
 
-  const res = await engine.request({
-    uri: `/oserve/v1.8/table/${userprofile.id}`,
+  return engine.request({
+    uri: `/oserve/v1.8/table/${userprofile.id}/`,
     method: 'PUT',
-    json: schemaConfig,
-    followRedirect: true
+    json: schemaConfig
   })
-
-  console.log('res', res)
-
-  return res
 }
 
 export const cli = ensureAuth(

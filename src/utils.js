@@ -146,11 +146,13 @@ exports.validateJSON = content => {
   try {
     const data = JSON.parse(content)
 
-    if (!isPlainObject(data)) return null
+    if (!Array.isArray(data)) {
+      return isPlainObject(data) ? data : null
+    }
 
-    return data
+    const isValid = data.every(item => isPlainObject(item))
+    return isValid ? data : null
   } catch (error) {
-    console.log('what error', error)
     return null
   }
 }
