@@ -1,8 +1,8 @@
 import path from 'path'
 import fs from 'fs'
 
-import {usageError, ensureAuth, validateJSON} from '../utils'
-import {isEqual} from 'lodash'
+import { usageError, ensureAuth, validateJSON } from '../utils'
+import { isEqual } from 'lodash'
 
 const OPERATION_TYPE = {
   IMPORT: 'import'
@@ -43,6 +43,8 @@ const removeSchema = async (engine, schemaId) => {
  * @param {*} schemaConfig 数据表配置
  */
 const createSchema = async (engine, schemaConfig) => {
+  console.log('正在上传', schemaConfig.name)
+
   return engine.request({
     uri: '/oserve/v1.8/table/',
     method: 'POST',
@@ -176,7 +178,9 @@ const importPointerSchema = async (
   if (!pointerSchema.length) return
   if (isEqual(pointerSchema, previousPointerSchema)) {
     throw usageError(
-      '找不到 Pointer 指向的数据表。如果数据表之间有循环依赖，请在控制台手动建表。'
+      '找不到 Pointer 指向的数据表。如果数据表之间有循环依赖，请在控制台手动建表。',
+      '报错涉及的数据表：',
+      JSON.stringify(pointerSchema.map(item => item.name))
     )
   }
 
@@ -238,7 +242,7 @@ const batchImportSchema = async (engine, schemaConfig) => {
   /**
    * 分类含有 pointer 和不含有 pointer 的数据表
    */
-  const {withoutPointer, withPointer} = schemaConfig.reduce(
+  const { withoutPointer, withPointer } = schemaConfig.reduce(
     (final, item) => {
       const hasPointer = item.schema.fields.some(
         field => field.type === 'reference'
@@ -249,7 +253,7 @@ const batchImportSchema = async (engine, schemaConfig) => {
 
       return final
     },
-    {withoutPointer: [], withPointer: []}
+    { withoutPointer: [], withPointer: [] }
   )
 
   try {
