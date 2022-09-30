@@ -8,7 +8,7 @@ const OPERATION_TYPE = {
   IMPORT: 'import'
 }
 
-const batchImportedSchema = []
+const batchImportedSchemaIds = []
 
 /**
  * 创建索引
@@ -107,7 +107,7 @@ const importSchema = async (engine, schemaConfig) => {
 
   const response = await createSchema(engine, schemaConfig)
 
-  if (!Array.isArray(schemaConfig.indexes)) return
+  if (!Array.isArray(schemaConfig.indexes)) return response
 
   /**
    * open-api 只支持单个创建索引
@@ -187,7 +187,6 @@ const importPointerSchema = async (
    * 区分每个含有 pointer 的表是否都指向已存在的表
    * 是则上传，否则待定
    */
-
   const pending = []
   for (const item of pointerSchema) {
     const pointers = item.schema.fields.reduce((acc, field) => {
@@ -202,8 +201,8 @@ const importPointerSchema = async (
       continue
     }
 
-    const res = await importSchema(item)
-    batchImportedSchema.push(res.id)
+    const res = await importSchema(engine, item)
+    batchImportedSchemaIds.push(res.body.id)
   }
 
   await importPointerSchema(engine, pending, pointerSchema)
@@ -214,9 +213,9 @@ const importPointerSchema = async (
  * @param {*} engine
  */
 const backwardRemoveSchema = async engine => {
-  for (let i = batchImportedSchema.length - 1; i >= 0; i--) {
-    const item = batchImportedSchema[i]
-    await removeSchema(engine, item.id)
+  for (let i = batchImportedSchemaIds.length - 1; i >= 0; i--) {
+    const schemaId = batchImportedSchemaIds[i]
+    await removeSchema(engine, schemaId)
   }
 }
 
@@ -245,9 +244,9 @@ const batchImportSchema = async (engine, schemaConfig) => {
         field => field.type === 'reference'
       )
 
-      hasPointer
-        ? final.withPointer.push(item)
-        : final.withoutPointer.push(item)
+      const target = hasPointer ? final.withPointer : final.withoutPointer
+      target.push(item)
+
       return final
     },
     {withoutPointer: [], withPointer: []}
@@ -259,7 +258,7 @@ const batchImportSchema = async (engine, schemaConfig) => {
      */
     for (const schemaConfig of withoutPointer) {
       const res = await importSchema(engine, schemaConfig)
-      batchImportedSchema.push(res.id)
+      batchImportedSchemaIds.push(res.body.id)
     }
 
     /**
