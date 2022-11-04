@@ -4,7 +4,7 @@ import request from 'request'
 import archiver from 'archiver'
 import rimraf from 'rimraf'
 
-import { usageError, ensureAuth } from '../utils'
+import {usageError, ensureAuth} from '../utils'
 
 const OPERATION_TYPE = {
   UPLOAD: 'upload'
@@ -21,7 +21,7 @@ const getUploadCredentials = engine => {
 }
 
 const upload = async (engine, filePath) => {
-  const { body: credentials } = await getUploadCredentials(engine)
+  const {body: credentials} = await getUploadCredentials(engine)
 
   const opt = {
     uri: credentials.upload_url,
@@ -61,7 +61,7 @@ const zipDir = dirPath => {
   return new Promise(resolve => {
     const outputPath = path.resolve('./', './output.zip')
     const output = fs.createWriteStream(outputPath)
-    const archive = archiver('zip', { zlib: { level: 9 } })
+    const archive = archiver('zip', {zlib: {level: 9}})
 
     archive.on('error', err => {
       throw err
@@ -122,6 +122,8 @@ export const cli = ensureAuth(async (engine, operationType, filePath) => {
       if (err) throw err
     })
   }
+
+  console.log('上传完毕')
 
   return 'ok'
 })
