@@ -6,7 +6,7 @@
     "faas",
     "cli"
   ],
-  "main": "lib",
+  "main": "bin/faas-cli.js",
   "license": "Apache-2.0",
   "repository": "https://github.com/ifanrx/faas-cli.git",
   "bugs": {
@@ -30,6 +30,7 @@
     ]
   },
   "dependencies": {
+    "archiver": "^5.3.1",
     "babel-polyfill": "^6.26.0",
     "babel-preset-stage-2": "^6.24.1",
     "columnify": "^1.5.4",
