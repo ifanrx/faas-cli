@@ -4,10 +4,6 @@ import fs from 'fs'
 import { usageError, ensureAuth, validateJSON } from '../utils'
 import { isEqual } from 'lodash'
 
-const OPERATION_TYPE = {
-  IMPORT: 'import'
-}
-
 const batchImportedSchemaIds = []
 
 /**
@@ -279,54 +275,48 @@ const batchImportSchema = async (engine, schemaConfig) => {
   console.log('上传成功')
 }
 
-export const cli = ensureAuth(
-  async (engine, operationType, schemaName, rootFolder = './') => {
-    if (!operationType || !schemaName) {
-      throw usageError(
-        '缺少必填字段 <operation_type> 和 <schema_name>',
-        '',
-        '用法：',
-        `    ${engine.config.get(
-          'prefix'
-        )} schema <operation_type> <schema_name> [schema_root_folder]`
-      )
-    }
-
-    if (!Object.values(OPERATION_TYPE).includes(operationType)) {
-      throw usageError('请输入有效的 <operation_type>')
-    }
-
-    if (!schemaName.endsWith('.json')) {
-      schemaName = `${schemaName}.json`
-    }
-
-    const targetFile = path.resolve(rootFolder, schemaName)
-
-    if (!fs.existsSync(targetFile)) {
-      throw usageError(
-        '数据表文件不存在',
-        '',
-        `- 数据表名：${schemaName}`,
-        `- 数据表根目录: ${rootFolder}`
-      )
-    }
-
-    const fileContent = fs.readFileSync(targetFile, 'utf8')
-    const schemaConfig = validateJSON(fileContent)
-
-    if (!schemaConfig) {
-      throw usageError('数据表 JSON 格式错误')
-    }
-
-    if (!Array.isArray(schemaConfig)) {
-      const schemaFunc =
-        schemaConfig.name === '_userprofile' ? updateUserProfile : importSchema
-      const response = await schemaFunc(engine, schemaConfig)
-
-      console.log('上传成功')
-      return response
-    }
-
-    return batchImportSchema(engine, schemaConfig)
+export const cli = ensureAuth(async (engine, schemaName, rootFolder = './') => {
+  if (!schemaName) {
+    throw usageError(
+      '缺少必填字段 <schema_name>',
+      '',
+      '用法：',
+      `    ${engine.config.get(
+        'prefix'
+      )} schema <schema_name> [schema_root_folder]`
+    )
   }
-)
+
+  if (!schemaName.endsWith('.json')) {
+    schemaName = `${schemaName}.json`
+  }
+
+  const targetFile = path.resolve(rootFolder, schemaName)
+
+  if (!fs.existsSync(targetFile)) {
+    throw usageError(
+      '数据表文件不存在',
+      '',
+      `- 数据表名：${schemaName}`,
+      `- 数据表根目录: ${rootFolder}`
+    )
+  }
+
+  const fileContent = fs.readFileSync(targetFile, 'utf8')
+  const schemaConfig = validateJSON(fileContent)
+
+  if (!schemaConfig) {
+    throw usageError('数据表 JSON 格式错误')
+  }
+
+  if (!Array.isArray(schemaConfig)) {
+    const schemaFunc =
+      schemaConfig.name === '_userprofile' ? updateUserProfile : importSchema
+    const response = await schemaFunc(engine, schemaConfig)
+
+    console.log('上传成功')
+    return response
+  }
+
+  return batchImportSchema(engine, schemaConfig)
+})

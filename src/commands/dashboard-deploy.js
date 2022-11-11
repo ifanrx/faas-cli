@@ -6,10 +6,6 @@ import rimraf from 'rimraf'
 
 import { usageError, ensureAuth } from '../utils'
 
-const OPERATION_TYPE = {
-  UPLOAD: 'upload'
-}
-
 const getUploadCredentials = engine => {
   return engine.request({
     uri: '/oserve/v2.1/upload/',
@@ -73,24 +69,13 @@ const zipDir = dirPath => {
   })
 }
 
-export const cli = ensureAuth(async (engine, operationType, filePath) => {
-  if (!operationType || !filePath) {
+export const cli = ensureAuth(async (engine, filePath) => {
+  if (!filePath) {
     throw usageError(
-      '缺少必填字段 <operation_type> 和 <file_path>',
+      '缺少必填字段 <file_path>',
       '',
       '用法：',
-      `    ${engine.config.get(
-        'prefix'
-      )} dashboard <operation_type> <file_path>`
-    )
-  }
-
-  if (operationType !== OPERATION_TYPE.UPLOAD) {
-    throw usageError(
-      '无效的 <operation_type>',
-      '',
-      '目前支持的类型为：',
-      Object.values(OPERATION_TYPE).join(', ')
+      `    ${engine.config.get('prefix')} dashboard-deploy <file_path>`
     )
   }
 
