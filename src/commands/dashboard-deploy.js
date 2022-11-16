@@ -38,13 +38,13 @@ const upload = async (engine, filePath) => {
   })
 }
 
-const deployDashboard = (engine, url) => {
+const deployDashboard = (engine, url, refresh) => {
   return engine.request({
     uri: '/oserve/v2.6/miniapp/custom-userdash/',
     method: 'POST',
     json: {
       repository_path: url,
-      url_refresh: 'true'
+      url_refresh: refresh == null ? true : refresh
     }
   })
 }
@@ -91,6 +91,8 @@ export const cli = ensureAuth(async (engine, filePath) => {
     throw usageError('请提供 .zip 后缀的压缩包文件')
   }
 
+  const refresh = engine.config.get('refresh')
+
   let zippedFile
   if (isDirectory) {
     zippedFile = await zipDir(targetFile)
@@ -98,7 +100,7 @@ export const cli = ensureAuth(async (engine, filePath) => {
 
   const url = await upload(engine, isDirectory ? zippedFile : targetFile)
 
-  await deployDashboard(engine, url)
+  await deployDashboard(engine, url, refresh)
 
   if (zippedFile) {
     rimraf(zippedFile, err => {
