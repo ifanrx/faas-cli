@@ -27,11 +27,11 @@ export default async function engine (opts) {
     if (envid) {
       headers['X-Hydrogen-Env-ID'] = envid
     }
-    defaultRequestOpts['headers'] = headers
+    defaultRequestOpts.headers = headers
   }
   const baseUrl = config.get('base_url')
   if (baseUrl) {
-    defaultRequestOpts['baseUrl'] = baseUrl
+    defaultRequestOpts.baseUrl = baseUrl
   }
 
   const engine = {

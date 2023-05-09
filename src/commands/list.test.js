@@ -28,7 +28,7 @@ const response = {
       audit_status: 'approved',
       created_at: 1538028220,
       created_by: '许诺',
-      function_code: `exports.main = function functionName(event, callback) { callback(null, "hello world") }`,
+      function_code: 'exports.main = function functionName(event, callback) { callback(null, "hello world") }',
       id: 1161,
       name: 'sendCollectProteinTemplateMessage',
       plan_circle: 'P_FREE',
