@@ -44,7 +44,7 @@ const deployDashboard = (engine, url, refresh) => {
     method: 'POST',
     json: {
       repository_path: url,
-      url_refresh: refresh == null ? true : refresh
+      url_refresh: refresh == null ? false : refresh
     }
   })
 }
