@@ -72,7 +72,7 @@ describe('cli login command', () => {
       filePath,
       '',
       `- 函数名：${funcName}`,
-      `- 函数根目录: ./`
+      '- 函数根目录: ./'
     ].join('')
     expect(logStore.indexOf(expectedStr) > -1).toBe(true)
     await rm(folderPath)

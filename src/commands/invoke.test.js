@@ -70,7 +70,7 @@ describe('cli invoke command', () => {
       .post(link, { function_name: functionName, data: {}, sync: true })
       .reply(200, response)
 
-    let spyMessage = []
+    const spyMessage = []
     const spy = jest
       .spyOn(global.console, 'log')
       .mockImplementation(msg => spyMessage.push(msg))
@@ -107,7 +107,7 @@ describe('cli invoke command', () => {
     expect.assertions(1)
     const e = await engine(config)
     // 监听 console.log
-    let logStore = []
+    const logStore = []
     console.log = jest.fn(output => logStore.push(output))
     const functionName = 'invoke_valid_data_test'
     const link = `/oserve/v1.3/cloud-function/${functionName}/debug/`
@@ -136,7 +136,7 @@ describe('cli invoke command', () => {
       }
     })
     // 监听 console.log
-    let logStore = []
+    const logStore = []
     console.log = jest.fn(output => logStore.push(output))
 
     const functionName = 'invoke_with_json'

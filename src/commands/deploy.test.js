@@ -106,7 +106,7 @@ describe('cli deploy command', () => {
     expect.assertions(1)
 
     // 监听 console.log
-    let logStore = []
+    const logStore = []
     console.log = jest.fn(output => logStore.push(output))
 
     // create function file
