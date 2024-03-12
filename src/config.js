@@ -34,6 +34,7 @@ export default function loadConfig (opts = {}) {
         json: [Boolean],
         message: [String],
         local: [Boolean],
+        qa: [Boolean],
         env: [String],
         batch: [Boolean],
         refresh: [Boolean]
@@ -42,6 +43,7 @@ export default function loadConfig (opts = {}) {
         j: '--json',
         m: '--message',
         l: '--local',
+        q: '--qa',
         e: '--env',
         b: '--batch',
         r: '--refresh'
@@ -55,7 +57,9 @@ export default function loadConfig (opts = {}) {
     }
     parsed.params = parsed.argv.remain // 命令行参数
 
-    const iniFile = path.join(opts.oshome, `.${opts.prefix}rc`)
+    const rcExt = parsed.qa ? `qa-${opts.prefix}rc` : `${opts.prefix}rc`
+
+    const iniFile = path.join(opts.oshome, `.${rcExt}`)
     if (!fs.existsSync(iniFile)) {
       fs.writeFileSync(iniFile, '')
     }
@@ -63,7 +67,7 @@ export default function loadConfig (opts = {}) {
     const config = cc(parsed, cc.env(`${opts.prefix}_`, opts.env))
 
     // 优先读取当前工作目录下的配置文件
-    const pwdInitFile = path.resolve(`./.${opts.prefix}rc`)
+    const pwdInitFile = path.resolve(`./.${rcExt}`)
     if (fs.existsSync(pwdInitFile)) {
       config.addFile(pwdInitFile, 'ini', 'pwdconfig')
     }

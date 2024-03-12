@@ -3,6 +3,8 @@ import path from 'path'
 import { usageError, decodeTokens, encodeTokens } from '../utils'
 
 export async function cli (engine, clientId, clientSecret) {
+  console.log('engine.config.get(qa)', engine.config.get('qa'))
+
   if (!clientId || !clientSecret) {
     throw usageError(
       '缺少必填字段 <client_id> 和 <client_secret>',
@@ -53,13 +55,19 @@ function save (engine, data, clientId) {
 
     // 登录成功，更新全局 tokens
     engine.config.set('tokens', tokens, 'config')
-
+    
+    // 如果标记 qa，保存 client_id 到当前工作目录中带 qa 的配置文件
+    if (engine.config.get('qa')) {
+      const pwdInitFile = path.resolve(`./.qa-${engine.config.get('prefix')}rc`)
+      fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
+    }
     // 如果标记 local，保存 client_id 到当前工作目录
-    if (engine.config.get('local')) {
+    else if (engine.config.get('local')) {
       const pwdInitFile = path.resolve(`./.${engine.config.get('prefix')}rc`)
       fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
-    } else {
-      // 否则更新全局的 client_id
+    }
+    // 否则更新全局的 client_id
+    else {
       engine.config.set('client_id', clientId, 'config')
     }
 
