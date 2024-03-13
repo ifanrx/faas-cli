@@ -12,7 +12,8 @@ export default async function engine (opts) {
   const defaultRequestOpts = {}
 
   const clientId = config.get('client_id')
-  const tokens = decodeTokens(config.get('tokens'))
+  const tokenKey = config.get('qa') ? 'qa_tokens' : 'tokens'
+  const tokens = decodeTokens(config.get(tokenKey))
   let envid = config.get('env')
   // env 与第三方库默认参数重名，需要特殊处理一下
   if (typeof envid !== 'string') {
