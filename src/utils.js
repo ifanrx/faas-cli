@@ -69,6 +69,12 @@ exports.errorHandler = function errorHandler (err) {
 exports.ensureAuth = cli => async (engine, ...args) => {
   const clientId = engine.config.get('client_id')
   const tokenKey = engine.config.get('qa') ? 'qa_tokens' : 'tokens'
+
+  // 如果是指定了 qa，必须有 base_url
+  if (engine.config.get('qa') && !engine.config.get('base_url')) {
+    throw exports.usageError('缺少必填字段 base_url')
+  }
+
   const tokens = exports.decodeTokens(engine.config.get(tokenKey))
 
   if (!clientId || !tokens[clientId]) throw exports.authError('请先登录')

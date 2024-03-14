@@ -1,8 +1,13 @@
-import { decodeTokens, encodeTokens } from '../utils'
+import { decodeTokens, encodeTokens, usageError } from '../utils'
 
 export function cli (engine) {
   return new Promise((resolve, reject) => {
     const tokenKey = engine.config.get('qa') ? 'qa_tokens' : 'tokens'
+
+    if (engine.config.get('qa') && !engine.config.get('base_url')) {
+      throw usageError('缺少必填字段 base_url')
+    }
+
     const clientId = engine.config.get('client_id')
     const tokens = decodeTokens(engine.config.get(tokenKey))
 

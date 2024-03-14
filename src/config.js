@@ -43,7 +43,6 @@ export default function loadConfig (opts = {}) {
         j: '--json',
         m: '--message',
         l: '--local',
-        q: '--qa',
         e: '--env',
         b: '--batch',
         r: '--refresh'
@@ -74,6 +73,11 @@ export default function loadConfig (opts = {}) {
 
     // 读取用户根目录下的配置文件
     config.addFile(iniFile, 'ini', 'config')
+
+    // qa 模式下，必须提供 base_url
+    if (parsed.qa) {
+      defaults.base_url = ''
+    }
 
     config.add(defaults)
 

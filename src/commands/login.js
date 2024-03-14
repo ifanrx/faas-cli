@@ -57,6 +57,10 @@ function save (engine, data, clientId) {
     
     // 如果标记 qa，保存 client_id 到当前工作目录中带 qa 的配置文件
     if (engine.config.get('qa')) {
+      if (!engine.config.get('base_url')) {
+        throw usageError('缺少必填字段 base_url')
+      }
+
       const pwdInitFile = path.resolve(`./.qa-${engine.config.get('prefix')}rc`)
       fs.writeFileSync(pwdInitFile, `client_id=${clientId}\n`)
     }
