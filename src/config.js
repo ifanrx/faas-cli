@@ -37,7 +37,8 @@ export default function loadConfig (opts = {}) {
         qa: [Boolean],
         env: [String],
         batch: [Boolean],
-        refresh: [Boolean]
+        refresh: [Boolean],
+        client_id: [String]
       },
       {
         j: '--json',
@@ -45,7 +46,8 @@ export default function loadConfig (opts = {}) {
         l: '--local',
         e: '--env',
         b: '--batch',
-        r: '--refresh'
+        r: '--refresh',
+        c: '--client_id',
       },
       opts.argv,
       2
