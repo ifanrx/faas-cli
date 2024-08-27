@@ -1,9 +1,11 @@
 import log from 'npmlog'
 import isPlainObject from 'lodash.isplainobject'
+import fs from 'fs'
 
 import pkg from '../package.json'
+import {defaults} from './config'
 
-function addError (type) {
+function addError(type) {
   return (...args) => {
     const err = new Error(args.join('\n'))
     err.type = type
@@ -43,7 +45,7 @@ Object.keys(handlers).forEach(key => {
   exports[handlers[key][1]] = addError(key)
 })
 
-exports.errorHandler = function errorHandler (err) {
+exports.errorHandler = function errorHandler(err) {
   if (!err) {
     process.exit(1)
   }
@@ -67,7 +69,7 @@ exports.errorHandler = function errorHandler (err) {
 }
 
 exports.ensureAuth = cli => async (engine, ...args) => {
-  const clientId = engine.config.get('client_id')
+  const clientId = exports.getClientId(engine.config)
   const tokenKey = engine.config.get('qa') ? 'qa_tokens' : 'tokens'
 
   // 如果是指定了 qa，必须有 base_url
@@ -162,4 +164,58 @@ exports.validateJSON = content => {
   } catch (error) {
     return null
   }
+}
+
+exports.getHost = url => {
+  const {host} = new URL(url)
+  return host
+}
+
+// 更新或追加 rc 配置文件
+exports.updateOrAppendConfig = (filePath, clientIdKey, clientId) => {
+  let content = ''
+  let updated = false
+
+  if (fs.existsSync(filePath)) {
+    const lines = fs.readFileSync(filePath, 'utf8').split('\n')
+    content = lines
+      .map(line => {
+        if (line.startsWith(`${clientIdKey}=`)) {
+          updated = true
+          return `${clientIdKey}=${clientId}`
+        }
+        return line
+      })
+      .join('\n')
+  }
+
+  if (!updated) {
+    content += `${content ? '\n' : ''}${clientIdKey}=${clientId}`
+  }
+
+  fs.writeFileSync(filePath, content.trim() + '\n')
+}
+
+/**
+ * 获取 client_id
+ * 如果标记 qa，直接返回 client_id，兼容旧数据（.qa-mincloudrc）
+ * 如果有 base_url，则尝试匹配 base_url 对应的 client_id
+ * 否则，返回 client_id
+ * @param {*} engineConfig 传入 engine.config
+ */
+exports.getClientId = engineConfig => {
+  // 如果标记 qa，直接返回 client_id，兼容旧数据（.qa-mincloudrc）
+  if (engineConfig.get('qa')) {
+    return engineConfig.get('client_id')
+  }
+
+  const baseUrl = engineConfig.get('base_url')
+
+  // 没有 base_url 或 base_url 是默认值，则返回 client_id
+  if (baseUrl === defaults.base_url) {
+    return engineConfig.get('client_id')
+  }
+
+  const clientIdKey = exports.getHost(baseUrl)
+  return engineConfig.get(clientIdKey)
 }

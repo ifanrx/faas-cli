@@ -3,15 +3,15 @@ import util from 'util'
 
 import loadConfig from './config'
 import loadCommands from './commands'
-import { afterRequest, decodeTokens, usageError } from './utils'
+import {afterRequest, decodeTokens, usageError, getClientId} from './utils'
 
-export default async function engine (opts) {
+export default async function engine(opts) {
   const config = await loadConfig(opts)
   const commands = await loadCommands()
 
   const defaultRequestOpts = {}
 
-  const clientId = config.get('client_id')
+  const clientId = getClientId(config)
   const tokenKey = config.get('qa') ? 'qa_tokens' : 'tokens'
 
   // 如果是指定了 qa，必须有 base_url
