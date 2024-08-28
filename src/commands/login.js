@@ -51,7 +51,6 @@ function save(engine, data, clientId) {
     const tokenKey = engine.config.get('qa') ? 'qa_tokens' : 'tokens'
     const baseUrl = engine.config.get('base_url')
     const prefix = engine.config.get('prefix')
-    console.log('prefix', prefix)
     const clientIdKey = baseUrl === defaults.base_url ? 'client_id' : getHost(baseUrl) // 可以是 client_id，也可以传入的 base_url（如果有）
 
     let tokens = decodeTokens(engine.config.get(tokenKey))
